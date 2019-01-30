@@ -4,7 +4,6 @@
 namespace Penguin{
 
 struct Vector3f::impl{
-    impl():_vec{Eigen::Vector3f{}}{}
     impl(float x, float y, float z):_vec{Eigen::Vector3f{x, y, z}}{}
     impl(const std::initializer_list<float>& l):_vec{l.begin()}{}
     inline float& operator[](size_t i){
@@ -16,7 +15,7 @@ struct Vector3f::impl{
     Eigen::Vector3f _vec;
 };
 
-  Vector3f::Vector3f():_impl{new impl{}}{}
+  Vector3f::Vector3f():_impl{new impl{0.0f, 0.0f, 0.0f}}{}
   Vector3f::Vector3f(float x, float y, float z):_impl{new impl{x, y, z}}
   {
   }
