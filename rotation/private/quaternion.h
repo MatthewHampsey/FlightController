@@ -2,7 +2,7 @@
 #include <Eigen/Geometry>
 #include "vector3f.h"
 
-namespace Penguin{
+namespace FrameDrag{
 class Quaternion{
   public:
   Quaternion(float w, Vector3f&& v);

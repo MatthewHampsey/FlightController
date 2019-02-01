@@ -7,6 +7,6 @@ endif
 boost_test_dep = dependency('boost', 
                             modules : ['test'])
 
-penguin_test_dep = declare_dependency(dependencies: [boost_test_dep], 
+FrameDrag_test_dep = declare_dependency(dependencies: [boost_test_dep], 
                             include_directories: include_directories('.'))
 subdir ('rotation')

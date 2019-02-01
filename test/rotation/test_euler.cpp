@@ -9,22 +9,22 @@
 #include <iostream>
 
 BOOST_AUTO_TEST_CASE(test_yaw) {
-    Penguin::Rotation yaw_rotation = Penguin::ZYXEulerToRotation(std::atan(1)*4, 0.0f, 0.0f);
-    Penguin::Vector3f x_hat{1.0f, 0.0f, 0.0f};
+    FrameDrag::Rotation yaw_rotation = FrameDrag::ZYXEulerToRotation(std::atan(1)*4, 0.0f, 0.0f);
+    FrameDrag::Vector3f x_hat{1.0f, 0.0f, 0.0f};
     auto x_hat_rot = yaw_rotation.apply(x_hat);
 
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[0], -1.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[1], 0.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[2], 0.0f, 0.001f);
 
-    Penguin::Vector3f y_hat{0.0f, 1.0f, 0.0f};
+    FrameDrag::Vector3f y_hat{0.0f, 1.0f, 0.0f};
     auto y_hat_rot = yaw_rotation.apply(y_hat);
 
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[0], 0.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[1], -1.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[2], 0.0f, 0.001f);
 
-    Penguin::Vector3f z_hat{0.0f, 0.0f, 1.0f};
+    FrameDrag::Vector3f z_hat{0.0f, 0.0f, 1.0f};
     auto z_hat_rot = yaw_rotation.apply(z_hat);
 
     TEST_CHECK_FLOAT_VALUE(z_hat_rot[0], 0.0f, 0.001f);
@@ -33,22 +33,22 @@ BOOST_AUTO_TEST_CASE(test_yaw) {
 }
 
 BOOST_AUTO_TEST_CASE(test_pitch) {
-    Penguin::Rotation pitch_rotation = Penguin::ZYXEulerToRotation(0.0f, std::atan(1)*4, 0.0f);
-    Penguin::Vector3f x_hat{1.0f, 0.0f, 0.0f};
+    FrameDrag::Rotation pitch_rotation = FrameDrag::ZYXEulerToRotation(0.0f, std::atan(1)*4, 0.0f);
+    FrameDrag::Vector3f x_hat{1.0f, 0.0f, 0.0f};
     auto x_hat_rot = pitch_rotation.apply(x_hat);
 
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[0], -1.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[1], 0.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[2], 0.0f, 0.001f);
 
-    Penguin::Vector3f y_hat{0.0f, 1.0f, 0.0f};
+    FrameDrag::Vector3f y_hat{0.0f, 1.0f, 0.0f};
     auto y_hat_rot = pitch_rotation.apply(y_hat);
 
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[0], 0.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[1], 1.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[2], 0.0f, 0.001f);
 
-    Penguin::Vector3f z_hat{0.0f, 0.0f, 1.0f};
+    FrameDrag::Vector3f z_hat{0.0f, 0.0f, 1.0f};
     auto z_hat_rot = pitch_rotation.apply(z_hat);
 
     TEST_CHECK_FLOAT_VALUE(z_hat_rot[0], 0.0f, 0.001f);
@@ -57,22 +57,22 @@ BOOST_AUTO_TEST_CASE(test_pitch) {
 }
 
 BOOST_AUTO_TEST_CASE(test_roll) {
-    Penguin::Rotation roll_rotation = Penguin::ZYXEulerToRotation(0.0f, 0.0f, std::atan(1)*4);
-    Penguin::Vector3f x_hat{1.0f, 0.0f, 0.0f};
+    FrameDrag::Rotation roll_rotation = FrameDrag::ZYXEulerToRotation(0.0f, 0.0f, std::atan(1)*4);
+    FrameDrag::Vector3f x_hat{1.0f, 0.0f, 0.0f};
     auto x_hat_rot = roll_rotation.apply(x_hat);
 
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[0], 1.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[1], 0.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[2], 0.0f, 0.001f);
 
-    Penguin::Vector3f y_hat{0.0f, 1.0f, 0.0f};
+    FrameDrag::Vector3f y_hat{0.0f, 1.0f, 0.0f};
     auto y_hat_rot = roll_rotation.apply(y_hat);
 
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[0], 0.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[1], -1.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[2], 0.0f, 0.001f);
 
-    Penguin::Vector3f z_hat{0.0f, 0.0f, 1.0f};
+    FrameDrag::Vector3f z_hat{0.0f, 0.0f, 1.0f};
     auto z_hat_rot = roll_rotation.apply(z_hat);
 
     TEST_CHECK_FLOAT_VALUE(z_hat_rot[0], 0.0f, 0.001f);
@@ -81,8 +81,8 @@ BOOST_AUTO_TEST_CASE(test_roll) {
 }
 
 BOOST_AUTO_TEST_CASE(test_pitch_then_yaw) {
-    Penguin::Rotation roll_rotation = Penguin::ZYXEulerToRotation(std::atan(1)*4, std::atan(1), 0.0f);
-    Penguin::Vector3f x_hat{1.0f, 0.0f, 0.0f};
+    FrameDrag::Rotation roll_rotation = FrameDrag::ZYXEulerToRotation(std::atan(1)*4, std::atan(1), 0.0f);
+    FrameDrag::Vector3f x_hat{1.0f, 0.0f, 0.0f};
     auto x_hat_rot = roll_rotation.apply(x_hat);
 
     float forty_five_degrees = 1/std::sqrt(2);
@@ -91,14 +91,14 @@ BOOST_AUTO_TEST_CASE(test_pitch_then_yaw) {
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[1], 0.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[2], -forty_five_degrees, 0.001f);
 
-    Penguin::Vector3f y_hat{0.0f, 1.0f, 0.0f};
+    FrameDrag::Vector3f y_hat{0.0f, 1.0f, 0.0f};
     auto y_hat_rot = roll_rotation.apply(y_hat);
 
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[0], 0.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[1], -1.0f, 0.001f);
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[2], 0.0f, 0.001f);
 
-    Penguin::Vector3f z_hat{0.0f, 0.0f, 1.0f};
+    FrameDrag::Vector3f z_hat{0.0f, 0.0f, 1.0f};
     auto z_hat_rot = roll_rotation.apply(z_hat);
 
     TEST_CHECK_FLOAT_VALUE(z_hat_rot[0], -forty_five_degrees, 0.001f);
@@ -107,8 +107,8 @@ BOOST_AUTO_TEST_CASE(test_pitch_then_yaw) {
 }
 
 BOOST_AUTO_TEST_CASE(test_roll_then_yaw) {
-    Penguin::Rotation roll_rotation = Penguin::ZYXEulerToRotation(std::atan(1), 0.0f, std::atan(1)*4);
-    Penguin::Vector3f x_hat{1.0f, 0.0f, 0.0f};
+    FrameDrag::Rotation roll_rotation = FrameDrag::ZYXEulerToRotation(std::atan(1), 0.0f, std::atan(1)*4);
+    FrameDrag::Vector3f x_hat{1.0f, 0.0f, 0.0f};
     auto x_hat_rot = roll_rotation.apply(x_hat);
 
     const float forty_five_degrees = 1/std::sqrt(2);
@@ -117,14 +117,14 @@ BOOST_AUTO_TEST_CASE(test_roll_then_yaw) {
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[1], forty_five_degrees, 0.001f);
     TEST_CHECK_FLOAT_VALUE(x_hat_rot[2], 0.0f, 0.001f);
 
-    Penguin::Vector3f y_hat{0.0f, 1.0f, 0.0f};
+    FrameDrag::Vector3f y_hat{0.0f, 1.0f, 0.0f};
     auto y_hat_rot = roll_rotation.apply(y_hat);
 
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[0], forty_five_degrees, 0.001f);
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[1], -forty_five_degrees, 0.001f);
     TEST_CHECK_FLOAT_VALUE(y_hat_rot[2], 0.0f, 0.001f);
 
-    Penguin::Vector3f z_hat{0.0f, 0.0f, 1.0f};
+    FrameDrag::Vector3f z_hat{0.0f, 0.0f, 1.0f};
     auto z_hat_rot = roll_rotation.apply(z_hat);
 
     TEST_CHECK_FLOAT_VALUE(z_hat_rot[0], 0.0f, 0.001f);

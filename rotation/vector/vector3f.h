@@ -3,7 +3,7 @@
 #include <memory>
 #include <initializer_list>
 
-namespace Penguin{
+namespace FrameDrag{
 class Vector3f{
 
   struct impl;

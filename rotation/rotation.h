@@ -4,7 +4,7 @@
 #include "vector3f.h"
 #include <initializer_list>
 
-namespace Penguin{
+namespace FrameDrag{
 
 class Rotation
 {

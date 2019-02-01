@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 #include "vector3f.h"
 
-namespace Penguin{
+namespace FrameDrag{
 class RotationMatrix{
   public:
   RotationMatrix(std::initializer_list<float> v);

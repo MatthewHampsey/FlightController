@@ -1,7 +1,7 @@
 #include "rotation.h"
 #include <cmath>
 
-namespace Penguin{
+namespace FrameDrag{
     Rotation ZYXEulerToRotation(float yaw, float pitch, float roll){
         //yaw mat:   [  cos  -sin  0    ]
 	    //           [ sin   cos   0    ]

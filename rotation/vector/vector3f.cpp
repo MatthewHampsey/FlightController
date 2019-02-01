@@ -1,7 +1,7 @@
 #include "vector3f.h"
 #include <Eigen/Dense>
 
-namespace Penguin{
+namespace FrameDrag{
 
 struct Vector3f::impl{
     impl(float x, float y, float z):_vec{Eigen::Vector3f{x, y, z}}{}

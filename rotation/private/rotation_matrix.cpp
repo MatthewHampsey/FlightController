@@ -1,6 +1,6 @@
 #include "rotation_matrix.h"
 
-namespace Penguin{
+namespace FrameDrag{
   RotationMatrix::RotationMatrix(std::initializer_list<float> v)
   : _mat{Eigen::Matrix3f{v.begin()}.transpose()}{
   }

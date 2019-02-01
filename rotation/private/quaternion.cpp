@@ -1,6 +1,6 @@
 #include "quaternion.h"
 
-namespace Penguin{
+namespace FrameDrag{
   Quaternion::Quaternion(float w, Vector3f&& v):_quat{w, v[0], v[1], v[2]}{
   }
   

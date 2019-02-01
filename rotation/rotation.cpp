@@ -2,7 +2,7 @@
 #include "quaternion.h"
 #include "rotation_matrix.h"
 
-namespace Penguin{
+namespace FrameDrag{
 
 Rotation fromAngleAxis(float angle, const Vector3f& v){
     return Rotation{Quaternion(std::cos(angle/2.0f), std::sin(angle/2.0f)*v)};
