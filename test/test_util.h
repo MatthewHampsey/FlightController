@@ -1,10 +1,11 @@
 #pragma once
 
-#include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/unit_test.hpp>
 
-namespace Test{
-    constexpr float EPS = 0.00000001f;
+namespace Test {
+constexpr float EPS = 0.00000001f;
 }
 
-#define TEST_CHECK_FLOAT_VALUE(x, y, eps) BOOST_CHECK_SMALL(std::abs((x) - (y)), (eps));
+#define TEST_CHECK_FLOAT_VALUE(x, y, eps)                                      \
+  BOOST_CHECK_SMALL(std::abs((x) - (y)), (eps));
