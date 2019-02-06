@@ -2,17 +2,19 @@
 #include "quaternion.h"
 #include "rotation_matrix.h"
 
-namespace FrameDrag{
+namespace FrameDrag {
 
-Rotation fromAngleAxis(float angle, const Vector3f& v){
-    return Rotation{Quaternion(std::cos(angle/2.0f), std::sin(angle/2.0f)*v)};
+Rotation fromAngleAxis(float angle, const Vector3f &v) {
+  return Rotation{
+      Quaternion(std::cos(angle / 2.0f), std::sin(angle / 2.0f) * v)};
 }
 
-Rotation fromAngleAxis(float angle, Vector3f&& v){
-    return Rotation{Quaternion(std::cos(angle/2.0f), std::sin(angle/2.0f)*v)};
+Rotation fromAngleAxis(float angle, Vector3f &&v) {
+  return Rotation{
+      Quaternion(std::cos(angle / 2.0f), std::sin(angle / 2.0f) * v)};
 }
 
-Rotation fromMatrix(const std::initializer_list<float>& l){
-    return Rotation{RotationMatrix{l}};
+Rotation fromMatrix(const std::initializer_list<float> &l) {
+  return Rotation{RotationMatrix{l}};
 }
 }
