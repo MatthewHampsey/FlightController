@@ -23,17 +23,11 @@ public:
   template <typename T> Rotation(T &&t) {
     representation = std::make_unique<RotationPrivate<T>>(std::move(t));
   }
-  // public:
-
-  // Rotation(const Rotation&) = delete;
-  // friend Rotation fromAxisAngle(float angle, Eigen::Vector3f);
 
   template <typename T> T apply(const T &v) { return representation->apply(v); }
 
 private:
   std::unique_ptr<RotationPrivateBase> representation;
-  // representation of rotation
-  // matrix or quat
 };
 
 Rotation fromAngleAxis(float angle, const Vector3f &v);
