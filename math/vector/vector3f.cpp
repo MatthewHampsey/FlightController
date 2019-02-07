@@ -50,6 +50,8 @@ Vector3f operator*(float x, const Vector3f &v) {
   return v2;
 }
 
+Vector3f operator*(const Vector3f &v, float x) { return x * v; }
+
 std::ostream &operator<<(std::ostream &os, const Vector3f &v) {
   os << v[0] << " " << v[1] << " " << v[2];
   return os;
