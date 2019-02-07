@@ -27,9 +27,11 @@ public:
   Vector3f operator+(const Vector3f &v) const;
 
   friend Vector3f operator*(float x, const Vector3f &v);
+  friend Vector3f operator*(const Vector3f &v, float x);
+
   friend std::ostream &operator<<(std::ostream &os, const Vector3f &v);
 
 private:
-  std::unique_ptr<impl, impl_deleter> _impl; // repr_type _vec;
+  std::unique_ptr<impl, impl_deleter> _impl;
 };
 }

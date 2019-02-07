@@ -1,4 +1,5 @@
 #include "euler.h"
+#include "matrix.h"
 #include "rotation.h"
 #include "vector3f.h"
 #include <iostream>
@@ -6,10 +7,7 @@
 
 int main() {
 
-  // rotate by pi around x-axis
-
   std::vector<FrameDrag::Rotation> rots;
-  // interface is completely decoupled from representation
   rots.push_back(FrameDrag::fromAngleAxis(3.14159265f,
                                           FrameDrag::Vector3f{1.0, 0.0, 0.0}));
   rots.push_back(FrameDrag::fromMatrix(
@@ -20,6 +18,5 @@ int main() {
   std::cout << rots[0].apply(v) << '\n';
   std::cout << rots[1].apply(v) << '\n';
   std::cout << rots[2].apply(v) << '\n';
-  // Eigen::Vector3f v{};
   return 0;
 }

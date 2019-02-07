@@ -1,16 +1,13 @@
 #pragma once
+#include "matrix.h"
 #include "vector3f.h"
-#include <Eigen/Dense>
 #include <initializer_list>
 
 namespace FrameDrag {
-class RotationMatrix {
+class RotationMatrix : Matrix3f {
 public:
-  RotationMatrix(std::initializer_list<float> v);
+  RotationMatrix(const std::initializer_list<float> &v);
 
   Vector3f apply(const Vector3f &v) const;
-
-private:
-  Eigen::Matrix3f _mat;
 };
 }

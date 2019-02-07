@@ -1,5 +1,4 @@
 subdir('private')
-subdir('vector')
 
 rotation_test_sources = ['test_euler.cpp']
 
