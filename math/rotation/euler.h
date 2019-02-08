@@ -1,3 +1,5 @@
+#pragma once
+
 #include "rotation.h"
 #include "vector3f.h"
 
