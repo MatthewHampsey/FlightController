@@ -10,4 +10,6 @@ Vector3f ZYXEulerToAngularVelocity(const Vector3f &euler,
 Vector3f ZYXEulerToAngularVelocity(float yaw, float pitch, float roll,
                                    float yaw_deriv, float pitch_deriv,
                                    float roll_deriv);
+Vector3f AngularVelocityToZYXEulerDerivatives(const Vector3f &euler,
+                                   const Vector3f &angular_velocity);
 }

@@ -21,6 +21,23 @@ BOOST_AUTO_TEST_CASE(test_vector_list_construction) {
   TEST_CHECK_FLOAT_VALUE(v[2], 3.0f, Test::EPS);
 }
 
+BOOST_AUTO_TEST_CASE(test_vector_copy_operator) {
+  FrameDrag::Vector3f v{1.0f, 2.0f, 3.0f};
+  FrameDrag::Vector3f v2{5.0f, 1.0f, 8.0f};
+
+  FrameDrag::Vector3f& ref = (v = v2);
+  v2[1] = 0.0f;
+  TEST_CHECK_FLOAT_VALUE(v[0], 5.0f, Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v[1], 1.0f, Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v[2], 8.0f, Test::EPS);
+
+  TEST_CHECK_FLOAT_VALUE(v[0], 5.0f, Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(ref[0], 5.0f, Test::EPS);
+  v[0] = 6.0f;
+  TEST_CHECK_FLOAT_VALUE(v[0], 6.0f, Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(ref[0], 6.0f, Test::EPS);
+}
+
 BOOST_AUTO_TEST_CASE(test_vector_addition) {
   FrameDrag::Vector3f v{1.0f, 2.0f, 3.0f};
   FrameDrag::Vector3f v2{3.0f, 4.0f, 5.0f};

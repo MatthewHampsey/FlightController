@@ -15,7 +15,6 @@ BOOST_AUTO_TEST_CASE(test_yaw) {
       FrameDrag::ZYXEulerToRotation(std::atan(1) * 4, 0.0f, 0.0f);
   FrameDrag::Vector3f x_hat{1.0f, 0.0f, 0.0f};
   auto x_hat_rot = yaw_rotation.apply(x_hat);
-
   TEST_CHECK_FLOAT_VALUE(x_hat_rot[0], -1.0f, 0.0001f);
   TEST_CHECK_FLOAT_VALUE(x_hat_rot[1], 0.0f, 0.0001f);
   TEST_CHECK_FLOAT_VALUE(x_hat_rot[2], 0.0f, 0.001f);

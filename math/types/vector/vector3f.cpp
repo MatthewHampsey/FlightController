@@ -4,8 +4,10 @@
 namespace FrameDrag {
 
 struct Vector3f::impl {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   impl(float x, float y, float z) : _vec{Eigen::Vector3f{x, y, z}} {}
   impl(const std::initializer_list<float> &l) : _vec{l.begin()} {}
+  impl(const impl &other): _vec{other._vec} {}
   inline float &operator[](size_t i) { return _vec[i]; }
   inline const float &operator[](size_t i) const { return _vec[i]; }
   Eigen::Vector3f _vec;
@@ -17,7 +19,14 @@ Vector3f::Vector3f(float x, float y, float z) : _impl{new impl{x, y, z}} {}
 Vector3f::Vector3f(const std::initializer_list<float> &l)
     : _impl{new impl{l}} {}
 
-Vector3f::Vector3f(const Vector3f &other) { *_impl = *(other._impl); }
+Vector3f::Vector3f(const Vector3f &other)
+ : _impl{new impl{*other._impl}}
+ {}
+
+Vector3f& Vector3f::operator=(const Vector3f& other){
+  Vector3f v{other};
+  return *this = std::move(v); 
+}
 
 void Vector3f::impl_deleter::operator()(Vector3f::impl *ptr) const {
   delete ptr;
