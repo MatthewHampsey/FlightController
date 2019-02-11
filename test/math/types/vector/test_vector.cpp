@@ -63,4 +63,9 @@ BOOST_AUTO_TEST_CASE(test_vector_scalar_multiplication) {
   TEST_CHECK_FLOAT_VALUE(v2[0], scalar * v[0], Test::EPS);
   TEST_CHECK_FLOAT_VALUE(v2[1], scalar * v[1], Test::EPS);
   TEST_CHECK_FLOAT_VALUE(v2[2], scalar * v[2], Test::EPS);
+
+  v2 = v * scalar;
+  TEST_CHECK_FLOAT_VALUE(v2[0], scalar * v[0], Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v2[1], scalar * v[1], Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v2[2], scalar * v[2], Test::EPS);
 }
