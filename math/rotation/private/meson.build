@@ -5,10 +5,10 @@ rotation_private_sources = ['quaternion.h',
 
 rotation_private_lib = shared_library('rotation_private',
                                rotation_private_sources,
-                               dependencies: [eigen_dep, vector_dep, matrix_dep],
+                               dependencies: [eigen_dep, framedrag_types_dep],
 )
 
 rotation_private_dep = declare_dependency(
                                   link_with: rotation_private_lib,
                                   include_directories: include_directories('.'),
-                                  dependencies: [eigen_dep, vector_dep, matrix_dep])
+                                  dependencies: [eigen_dep, framedrag_types_dep])

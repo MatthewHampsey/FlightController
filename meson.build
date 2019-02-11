@@ -3,4 +3,4 @@ project('FrameDrag', 'cpp',
 subdir('thirdparty')
 subdir('math')
 subdir('test')
-executable('foo', 'main.cpp', dependencies :[rotation_external_dep, vector_dep, matrix_dep])
+executable('foo', 'main.cpp', dependencies :[rotation_external_dep, framedrag_types_dep])
