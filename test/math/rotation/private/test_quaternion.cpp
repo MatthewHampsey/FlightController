@@ -52,3 +52,13 @@ BOOST_AUTO_TEST_CASE(test_pi_angle_quat) {
   TEST_CHECK_FLOAT_VALUE(vvv2[1], 0.0f, 0.0001f);
   TEST_CHECK_FLOAT_VALUE(vvv2[2], 0.0f, 0.0001f);
 }
+
+BOOST_AUTO_TEST_CASE(test_inverse){
+  FrameDrag::Quaternion q{3.0f, {1.5f, 6.8f, 9.1f}};
+  auto v = FrameDrag::Vector3f{3.2f, 78.4f, 99.2f};
+  auto v2 = q.apply(v);
+  auto v3 = q.inverse().apply(v2);
+  TEST_CHECK_FLOAT_VALUE(v[0], v3[0], 0.0001f);
+  TEST_CHECK_FLOAT_VALUE(v[1], v3[1], 0.0001f);
+  TEST_CHECK_FLOAT_VALUE(v[2], v3[2], 0.0001f);
+}

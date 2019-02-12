@@ -92,6 +92,11 @@ Rotation ZYXEulerToRotation(float yaw, float pitch, float roll) {
                      cosp * cosr});
 }
 
+Rotation ZYXEulerToRotation(const Vector3f &euler) {
+  return ZYXEulerToRotation(euler[0], euler[1], euler[2]);
+}
+
+
 Vector3f ZYXEulerToAngularVelocity(const Vector3f &euler,
                                    const Vector3f &euler_derivative) {
   return eulerToAngularVelocityConversionMatrix(euler) * euler_derivative;

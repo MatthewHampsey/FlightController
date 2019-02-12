@@ -55,4 +55,8 @@ Matrix3f operator*(const Matrix3f &l, const Matrix3f &r) {
   mat._impl->_mat = l._impl->_mat*r._impl->_mat;
   return mat;
 }
+
+Vector3f Matrix3f::apply(const Vector3f &v){
+  return *this * v;
+}
 }

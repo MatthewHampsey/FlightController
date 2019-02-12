@@ -25,7 +25,7 @@ public:
   float& operator()(size_t i, size_t j);
   friend Vector3f operator*(const Matrix3f &m, const Vector3f &v);
   friend Matrix3f operator*(const Matrix3f &l, const Matrix3f &r);
-
+  Vector3f apply(const Vector3f &v);
 
 private:
   std::unique_ptr<impl, impl_deleter> _impl;

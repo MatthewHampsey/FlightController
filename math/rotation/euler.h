@@ -5,6 +5,8 @@
 
 namespace FrameDrag {
 Rotation ZYXEulerToRotation(float yaw, float pitch, float roll);
+Rotation ZYXEulerToRotation(const Vector3f &euler);
+
 Vector3f ZYXEulerToAngularVelocity(const Vector3f &euler,
                                    const Vector3f &euler_derivative);
 Vector3f ZYXEulerToAngularVelocity(float yaw, float pitch, float roll,
