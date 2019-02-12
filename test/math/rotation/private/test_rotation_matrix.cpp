@@ -48,3 +48,18 @@ BOOST_AUTO_TEST_CASE(test_quarter_pi_y_axis_matrix) {
   TEST_CHECK_FLOAT_VALUE(vvv2[1], 0.0f, 0.0001f);
   TEST_CHECK_FLOAT_VALUE(vvv2[2], forty_five_degrees, 0.0001f);
 }
+
+BOOST_AUTO_TEST_CASE(test_inverse){
+  const float quarter_pi = 3.14159265f / 4.0f;
+  FrameDrag::RotationMatrix r{
+      std::cos(quarter_pi),  0.0f, std::sin(quarter_pi), 
+      0.0f,                  1.0f,       0.0f,
+      -std::sin(quarter_pi), 0.0f, std::cos(quarter_pi)};
+
+  FrameDrag::Matrix3f r_inverse = r.inverse();
+  for(int i = 0; i < 3; i++){
+    for(int j = 0; j < 3; j++){
+      TEST_CHECK_FLOAT_VALUE(r(i, j), r_inverse(j, i), 0.0001f)
+    }
+  }
+}

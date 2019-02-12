@@ -6,7 +6,6 @@
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
-#include <iostream>
 
 const float forty_five_degrees = 1 / std::sqrt(2);
 
@@ -215,4 +214,28 @@ BOOST_AUTO_TEST_CASE(test_velocity_rotated_y_axis) {
   TEST_CHECK_FLOAT_VALUE(angular_velocity[0], angular_velocity2[0], 0.001f);
   TEST_CHECK_FLOAT_VALUE(angular_velocity[1], angular_velocity2[1], 0.001f);
   TEST_CHECK_FLOAT_VALUE(angular_velocity[2], angular_velocity2[2], 0.001f);
+}
+
+BOOST_AUTO_TEST_CASE(test_matrix_rot_inverse) {
+  FrameDrag::Rotation r = 
+      FrameDrag::ZYXEulerToRotation(std::atan(1) * 4, 1.2f, 2.34f);
+  FrameDrag::Vector3f v{5.0f, 3.2f, 9.1f};
+  FrameDrag::Vector3f v2 = r.apply(v);
+  FrameDrag::Vector3f v3 = r.inverse().apply(v2);
+  
+  TEST_CHECK_FLOAT_VALUE(v[0], v3[0], 0.001f);
+  TEST_CHECK_FLOAT_VALUE(v[1], v3[1], 0.001f);
+  TEST_CHECK_FLOAT_VALUE(v[2], v3[2], 0.001f);
+}
+
+BOOST_AUTO_TEST_CASE(test_quaternion_rot_inverse) {
+  FrameDrag::Rotation r = 
+      FrameDrag::fromAngleAxis(1.42f, {0.5773502, 0.5773502, 0.5773502});
+  FrameDrag::Vector3f v{3.1f, 6.2f, 25.7f};
+  FrameDrag::Vector3f v2 = r.apply(v);
+  FrameDrag::Vector3f v3 = r.inverse().apply(v2);
+  
+  TEST_CHECK_FLOAT_VALUE(v[0], v3[0], 0.001f);
+  TEST_CHECK_FLOAT_VALUE(v[1], v3[1], 0.001f);
+  TEST_CHECK_FLOAT_VALUE(v[2], v3[2], 0.001f);
 }
