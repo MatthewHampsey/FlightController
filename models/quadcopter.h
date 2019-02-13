@@ -19,7 +19,7 @@ class Quadcopter : Model{
                       const Vector3f& drag, const Vector3f &torque);
     //private:
     float _mass = 1.0f;
-    Vector3f _position{0.0f, 0.0f, 10.0f};
+    Vector3f _position{0.0f, 0.0f, 0.0f};
     Vector3f _velocity{0.0f, 0.0f, 0.0f};
     Vector3f _euler_angles{0.0f, 0.0f, 0.0f};
     Vector3f _euler_derivatives{0.0f, 0.0f, 0.0f};

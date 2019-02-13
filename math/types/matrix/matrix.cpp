@@ -44,6 +44,34 @@ Matrix3f Matrix3f::inverse(){
   return inverse_matrix;
 }
 
+Matrix3f Matrix3f::operator-() const {
+  Matrix3f mm;
+  mm._impl->_mat = -_impl->_mat;
+  return mm;
+}
+
+Matrix3f Matrix3f::operator-(const Matrix3f &m) const {
+  Matrix3f mm;
+  mm._impl->_mat = _impl->_mat - m._impl->_mat;
+  return mm;
+}
+
+Matrix3f& Matrix3f::operator-=(const Matrix3f &m) {
+  _impl->_mat -= m._impl->_mat;
+  return *this;
+}
+
+Matrix3f Matrix3f::operator+(const Matrix3f &m) const {
+  Matrix3f mm;
+  mm._impl->_mat = _impl->_mat + m._impl->_mat;
+  return mm;
+}
+
+Matrix3f& Matrix3f::operator+=(const Matrix3f &m) {
+  _impl->_mat += m._impl->_mat;
+  return *this;
+}
+
 Vector3f operator*(const Matrix3f &m, const Vector3f &v) {
   Vector3f vv;
   vv._impl->_vec = m._impl->_mat*v._impl->_vec;

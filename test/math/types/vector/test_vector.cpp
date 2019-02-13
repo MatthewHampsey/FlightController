@@ -47,6 +47,44 @@ BOOST_AUTO_TEST_CASE(test_vector_addition) {
   TEST_CHECK_FLOAT_VALUE(v3[2], v[2] + v2[2], Test::EPS);
 }
 
+BOOST_AUTO_TEST_CASE(test_vector_unary_subtraction) {
+  FrameDrag::Vector3f v{1.0f, 2.0f, 3.0f};
+  auto v2 = -v;
+  TEST_CHECK_FLOAT_VALUE(v2[0], -(v[0]), Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v2[1], -(v[1]), Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v2[2], -(v[2]), Test::EPS);
+}
+
+BOOST_AUTO_TEST_CASE(test_vector_self_addition) {
+  FrameDrag::Vector3f v{1.0f, 2.0f, 3.0f};
+  FrameDrag::Vector3f v2{3.0f, 4.0f, 5.0f};
+
+  auto v_address = &v;
+
+  v += v2;
+
+  BOOST_CHECK_EQUAL(v_address, &v);
+
+  TEST_CHECK_FLOAT_VALUE(v[0], 4.0f, Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v[1], 6.0f, Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v[2], 8.0f, Test::EPS);
+}
+
+BOOST_AUTO_TEST_CASE(test_vector_self_subtraction) {
+  FrameDrag::Vector3f v{1.0f, 2.0f, 3.0f};
+  FrameDrag::Vector3f v2{3.0f, 4.0f, 5.0f};
+
+  auto v_address = &v;
+
+  v -= v2;
+
+  BOOST_CHECK_EQUAL(v_address, &v);
+
+  TEST_CHECK_FLOAT_VALUE(v[0], -2.0f, Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v[1], -2.0f, Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v[2], -2.0f, Test::EPS);
+}
+
 BOOST_AUTO_TEST_CASE(test_vector_subtraction) {
   FrameDrag::Vector3f v{1.0f, 2.0f, 3.0f};
   FrameDrag::Vector3f v2{3.0f, 4.0f, 5.0f};
