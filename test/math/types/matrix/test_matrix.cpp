@@ -60,6 +60,94 @@ BOOST_AUTO_TEST_CASE(test_matrix_vector_multiplication) {
   TEST_CHECK_FLOAT_VALUE(5.0f * in[0] + 2000.0f * in[2], out[2], Test::EPS);
 }
 
+BOOST_AUTO_TEST_CASE(test_matrix_unary_subtraction) {
+  FrameDrag::Matrix3f m{1.0f, 2.0f, 3.0f,
+                        4.0f, 5.0f, 6.0f,
+                        7.0f, 8.0f, 9.0f};
+  auto m2 = -m;
+  for(int i = 0; i < 3; i ++){
+    for(int j = 0; j < 3; j++){
+      TEST_CHECK_FLOAT_VALUE(m2(i, j), -(m(i, j)), Test::EPS);
+    }
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_matrix_subtraction) {
+  FrameDrag::Matrix3f m{1.0f, 2.0f, 3.0f,
+                        4.0f, 5.0f, 6.0f,
+                        7.0f, 8.0f, 9.0f};
+  FrameDrag::Matrix3f m2{5.0f, 2.30f, 3.50f,
+                        90.0f, 54.0f, 12.4f,
+                        17.5f, 8.1f, 20.87f};
+  auto m3 = m - m2;
+  for(int i = 0; i < 3; i ++){
+    for(int j = 0; j < 3; j++){
+      TEST_CHECK_FLOAT_VALUE(m3(i, j), m(i, j) - m2(i, j), Test::EPS);
+    }
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_matrix_addition) {
+  FrameDrag::Matrix3f m{1.0f, 2.0f, 3.0f,
+                        4.0f, 5.0f, 6.0f,
+                        7.0f, 8.0f, 9.0f};
+  FrameDrag::Matrix3f m2{5.0f, 2.30f, 3.50f,
+                        90.0f, 54.0f, 12.4f,
+                        17.5f, 8.1f, 20.87f};
+  auto m3 = m + m2;
+  for(int i = 0; i < 3; i ++){
+    for(int j = 0; j < 3; j++){
+      TEST_CHECK_FLOAT_VALUE(m3(i, j), m(i, j) + m2(i, j), Test::EPS);
+    }
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_matrix_self_addition) {
+  FrameDrag::Matrix3f m{1.0f, 2.0f, 3.0f,
+                        4.0f, 5.0f, 6.0f,
+                        7.0f, 8.0f, 9.0f};
+  FrameDrag::Matrix3f m2{5.0f, 2.30f, 3.50f,
+                        90.0f, 54.0f, 12.4f,
+                        17.5f, 8.1f, 20.87f};
+
+  auto m_copy = m;
+
+  auto m_address = &m;
+
+  m += m2;
+
+  BOOST_CHECK_EQUAL(m_address, &m);
+
+  for(int i = 0; i < 3; i ++){
+    for(int j = 0; j < 3; j++){
+      TEST_CHECK_FLOAT_VALUE(m(i, j), m_copy(i, j) + m2(i, j), Test::EPS);
+    }
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_matrix_self_subtraction) {
+  FrameDrag::Matrix3f m{1.0f, 2.0f, 3.0f,
+                        4.0f, 5.0f, 6.0f,
+                        7.0f, 8.0f, 9.0f};
+  FrameDrag::Matrix3f m2{5.0f, 2.30f, 3.50f,
+                        90.0f, 54.0f, 12.4f,
+                        17.5f, 8.1f, 20.87f};
+
+  auto m_copy = m;
+
+  auto m_address = &m;
+
+  m -= m2;
+
+  BOOST_CHECK_EQUAL(m_address, &m);
+
+  for(int i = 0; i < 3; i ++){
+    for(int j = 0; j < 3; j++){
+      TEST_CHECK_FLOAT_VALUE(m(i, j), m_copy(i, j) - m2(i, j), Test::EPS);
+    }
+  }
+}
+
 BOOST_AUTO_TEST_CASE(test_matrix_matrix_multiplication) {
   FrameDrag::Matrix3f m{1.0f, 0.0f, 0.0f,
                         0.0f, 0.0f, 0.0f,

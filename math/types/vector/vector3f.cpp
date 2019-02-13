@@ -41,10 +41,21 @@ bool Vector3f::operator==(const Vector3f &v) const {
   return (_impl->_vec == v._impl->_vec);
 }
 
+Vector3f Vector3f::operator-() const {
+  Vector3f vv;
+  vv._impl->_vec = -_impl->_vec;
+  return vv;
+}
+
 Vector3f Vector3f::operator-(const Vector3f &v) const {
   Vector3f vv;
   vv._impl->_vec = _impl->_vec - v._impl->_vec;
   return vv;
+}
+
+Vector3f& Vector3f::operator-=(const Vector3f &v) {
+  _impl->_vec -= v._impl->_vec;
+  return *this;
 }
 
 Vector3f Vector3f::operator+(const Vector3f &v) const {
@@ -52,6 +63,12 @@ Vector3f Vector3f::operator+(const Vector3f &v) const {
   vv._impl->_vec = _impl->_vec + v._impl->_vec;
   return vv;
 }
+
+Vector3f& Vector3f::operator+=(const Vector3f &v) {
+  _impl->_vec += v._impl->_vec;
+  return *this;
+}
+
 
 Vector3f Vector3f::cross(const Vector3f &v) const{
   Vector3f vv;

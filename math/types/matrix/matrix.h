@@ -22,6 +22,11 @@ public:
   Matrix3f& operator=(Matrix3f&&) = default;
   Matrix3f inverse();
 
+  Matrix3f operator-() const;
+  Matrix3f operator-(const Matrix3f &other) const;
+  Matrix3f& operator-=(const Matrix3f &other);
+  Matrix3f operator+(const Matrix3f &other) const;
+  Matrix3f& operator+=(const Matrix3f &other);
   float& operator()(size_t i, size_t j);
   friend Vector3f operator*(const Matrix3f &m, const Vector3f &v);
   friend Matrix3f operator*(const Matrix3f &l, const Matrix3f &r);
