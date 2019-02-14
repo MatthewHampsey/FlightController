@@ -107,3 +107,12 @@ BOOST_AUTO_TEST_CASE(test_vector_scalar_multiplication) {
   TEST_CHECK_FLOAT_VALUE(v2[1], scalar * v[1], Test::EPS);
   TEST_CHECK_FLOAT_VALUE(v2[2], scalar * v[2], Test::EPS);
 }
+
+BOOST_AUTO_TEST_CASE(test_vector_scalar_division) {
+  FrameDrag::Vector3f v{1.0f, 2.0f, 3.0f};
+  float scalar = 56.2f;
+  auto v2 = v / scalar;
+  TEST_CHECK_FLOAT_VALUE(v2[0], v[0] / scalar, Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v2[1], v[1] / scalar, Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v2[2], v[2] / scalar, Test::EPS);
+}

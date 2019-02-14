@@ -187,3 +187,37 @@ BOOST_AUTO_TEST_CASE(test_matrix_inverse) {
     }
   }
 }
+
+BOOST_AUTO_TEST_CASE(test_matrix_scalar_multiplication) {
+  FrameDrag::Matrix3f m{1.0f, 2.0f, 3.0f,
+                        4.0f, 5.0f, 6.0f,
+                        7.0f, 8.0f, 9.0f};  
+  float scalar = 56.2f;
+  auto m2 = scalar * m;
+  for(int i = 0; i < 3; i ++){
+    for(int j = 0; j < 3; j++){
+      TEST_CHECK_FLOAT_VALUE(m2(i, j), scalar * m(i, j), Test::EPS);
+    }
+  }
+
+  auto m3 = m * scalar;
+
+  for(int i = 0; i < 3; i ++){
+    for(int j = 0; j < 3; j++){
+      TEST_CHECK_FLOAT_VALUE(m3(i, j), scalar * m(i, j), Test::EPS);
+    }
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_matrix_scalar_division) {
+  FrameDrag::Matrix3f m{1.0f, 2.0f, 3.0f,
+                        4.0f, 5.0f, 6.0f,
+                        7.0f, 8.0f, 9.0f};  
+  float scalar = 56.2f;
+  auto m2 = m / scalar;
+  for(int i = 0; i < 3; i ++){
+    for(int j = 0; j < 3; j++){
+      TEST_CHECK_FLOAT_VALUE(m2(i, j), m(i, j) / scalar, Test::EPS);
+    }
+  }
+}

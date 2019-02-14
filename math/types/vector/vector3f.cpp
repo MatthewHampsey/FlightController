@@ -84,6 +84,12 @@ Vector3f operator*(float x, const Vector3f &v) {
 
 Vector3f operator*(const Vector3f &v, float x) { return x * v; }
 
+Vector3f operator/(const Vector3f &v, float x){
+  Vector3f v2;
+  v2._impl->_vec = v._impl->_vec / x;
+  return v2;
+}
+
 std::ostream &operator<<(std::ostream &os, const Vector3f &v) {
   os << v[0] << " " << v[1] << " " << v[2];
   return os;

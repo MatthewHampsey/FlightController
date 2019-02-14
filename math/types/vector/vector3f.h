@@ -39,6 +39,7 @@ public:
   friend Vector3f operator*(float x, const Vector3f &v);
   friend Vector3f operator*(const Vector3f &v, float x);
   friend Vector3f operator*(const Matrix3f &m, const Vector3f &v);
+  friend Vector3f operator/(const Vector3f &v, float x);
   friend std::ostream &operator<<(std::ostream &os, const Vector3f &v);
 private:
   std::unique_ptr<impl, impl_deleter> _impl;
