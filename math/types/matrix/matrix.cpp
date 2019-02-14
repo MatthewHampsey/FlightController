@@ -84,6 +84,22 @@ Matrix3f operator*(const Matrix3f &l, const Matrix3f &r) {
   return mat;
 }
 
+Matrix3f operator*(float x, const Matrix3f &m){
+  Matrix3f m2;
+  m2._impl->_mat = x * m._impl->_mat;
+  return m2;
+}
+
+Matrix3f operator*(const Matrix3f &m, float x){
+  return x * m;
+}
+
+Matrix3f operator/(const Matrix3f &m, float x){
+  Matrix3f m2;
+  m2._impl->_mat = m._impl->_mat / x;
+  return m2;
+}
+
 Vector3f Matrix3f::apply(const Vector3f &v){
   return *this * v;
 }

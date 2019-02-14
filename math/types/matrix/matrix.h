@@ -30,6 +30,10 @@ public:
   float& operator()(size_t i, size_t j);
   friend Vector3f operator*(const Matrix3f &m, const Vector3f &v);
   friend Matrix3f operator*(const Matrix3f &l, const Matrix3f &r);
+  friend Matrix3f operator*(float x, const Matrix3f &m);  
+  friend Matrix3f operator*(const Matrix3f &m, float x);
+  friend Matrix3f operator/(const Matrix3f &m, float x);
+
   Vector3f apply(const Vector3f &v);
 
 private:
