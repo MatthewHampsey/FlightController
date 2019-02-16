@@ -18,7 +18,7 @@ Quadcopter::Quadcopter(const Vector3f& position,
 void Quadcopter::step(float time_delta, const Vector3f& thrust, 
                       const Vector3f& drag, const Vector3f &torque){
         Vector3f gravity{0.0f, 0.0f, -_mass*9.81f};
-        auto _bodyframe_to_world = ZYXEulerToRotation(_euler_angles);//.inverse();
+        auto _bodyframe_to_world = ZYXEulerToRotationMatrix(_euler_angles);//.inverse();
         auto linear_acceleration = (1.0f/_mass)*
             (gravity + _bodyframe_to_world.apply(thrust) + drag);
         auto angular_velocity = ZYXEulerToAngularVelocity(_euler_angles,

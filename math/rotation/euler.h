@@ -4,8 +4,11 @@
 #include "vector3f.h"
 
 namespace FrameDrag {
-Rotation ZYXEulerToRotation(float yaw, float pitch, float roll);
-Rotation ZYXEulerToRotation(const Vector3f &euler);
+Rotation ZYXEulerToRotationMatrix(float yaw, float pitch, float roll);
+Rotation ZYXEulerToRotationMatrix(const Vector3f &euler);
+
+Rotation ZYXEulerToRotationQuaternion(float yaw, float pitch, float roll);
+Rotation ZYXEulerToRotationQuaternion(const Vector3f &euler);
 
 Vector3f ZYXEulerToAngularVelocity(const Vector3f &euler,
                                    const Vector3f &euler_derivative);
