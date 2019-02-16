@@ -61,7 +61,7 @@ inline Matrix3f eulerToAngularVelocityConversionMatrix(const Vector3f &euler) {
 }
 }
 
-Rotation ZYXEulerToRotation(float yaw, float pitch, float roll) {
+Rotation ZYXEulerToRotationMatrix(float yaw, float pitch, float roll) {
   // yaw mat:   [  cos  -sin  0    ]
   //           [ sin   cos   0    ]
   //           [ 0     0     1    ]
@@ -92,10 +92,52 @@ Rotation ZYXEulerToRotation(float yaw, float pitch, float roll) {
                      cosp * cosr});
 }
 
-Rotation ZYXEulerToRotation(const Vector3f &euler) {
-  return ZYXEulerToRotation(euler[0], euler[1], euler[2]);
+Rotation ZYXEulerToRotationMatrix(const Vector3f &euler) {
+  return ZYXEulerToRotationMatrix(euler[0], euler[1], euler[2]);
 }
 
+Rotation ZYXEulerToRotationQuaternion(float yaw, float pitch, float roll){
+  //yaw quat:   [cos(yaw/2)]
+  //            [          ]
+  //            [          ]
+  //            [sin(yaw/2)]
+  //pitch quat: [cos(pitch/2)]
+  //            [          ]
+  //            [sin(yaw/2)]
+  //            [          ]
+  //roll quat:  [cos(roll/2)]
+  //            [sin(roll/2)]
+  //            [           ]
+  //            [           ]
+  // ik = -j
+  //final quat: [cos(yaw/2)][cos(pitch/2)][cos(roll/2)]   [cos(yaw/2)*cos(pitch/2) ][cos(roll/2)]
+  //            [          ][            ][sin(roll/2)] = [-sin(yaw/2)*sin(pitch/2)][sin(roll/2)]
+  //            [          ][ sin(pitch/2)[           ]   [cos(yaw/2)*sin(pitch/2) ][           ]
+  //            [sin(yaw/2)][            ][           ]   [sin(yaw/2)*cos(pitch/2) ][           ]
+  //
+  //final quat: [cos(yaw/2)*cos(pitch/2) ][cos(roll/2)]   [cos(yaw/2)*cos(pitch/2)*cos(roll/2) + sin(yaw/2)*sin(pitch/2)*sin(roll/2)]
+  //            [-sin(yaw/2)*sin(pitch/2)][sin(roll/2)] = [cos(yaw/2)*cos(pitch/2)*sin(roll/2) - sin(yaw/2)*sin(pitch/2)*cos(roll/2)]
+  //            [cos(yaw/2)*sin(pitch/2) ][           ]   [cos(yaw/2)*sin(pitch/2)*cos(roll/2) + sin(yaw/2)*cos(pitch/2)*sin(roll/2)]
+  //            [sin(yaw/2)*cos(pitch/2) ][           ]   [sin(yaw/2)*cos(pitch/2)*cos(roll/2) - cos(yaw/2)*sin(pitch/2)*sin(roll/2)]
+
+  const auto y2 = yaw/2.0f;
+  const auto p2 = pitch/2.0f;
+  const auto r2 = roll/2.0f;
+  const auto cosy2 = std::cos(y2);
+  const auto siny2 = std::sin(y2);
+  const auto cosp2 = std::cos(p2);
+  const auto sinp2 = std::sin(p2);
+  const auto cosr2 = std::cos(r2);
+  const auto sinr2 = std::sin(r2);
+  return fromQuaternion(cosy2*cosp2*cosr2 + siny2*sinp2*sinr2,
+                        cosy2*cosp2*sinr2 - siny2*sinp2*cosr2,
+                        cosy2*sinp2*cosr2 + siny2*cosp2*sinr2,
+                        siny2*cosp2*cosr2 - cosy2*sinp2*sinr2);
+}
+
+Rotation ZYXEulerToRotationQuaternion(const Vector3f &euler){
+  return ZYXEulerToRotationQuaternion(euler[0], euler[1], euler[2]);
+}
 
 Vector3f ZYXEulerToAngularVelocity(const Vector3f &euler,
                                    const Vector3f &euler_derivative) {

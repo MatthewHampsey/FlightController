@@ -41,5 +41,6 @@ private:
 
 Rotation fromAngleAxis(float angle, const Vector3f &v);
 Rotation fromAngleAxis(float angle, Vector3f &&v);
+Rotation fromQuaternion(float q1, float q2, float q3, float q4);
 Rotation fromMatrix(const std::initializer_list<float> &l);
 }
