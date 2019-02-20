@@ -146,16 +146,16 @@ BOOST_AUTO_TEST_CASE(test_no_thrust_with_torque) {
     TEST_CHECK_FLOAT_VALUE(q._position[0], 0.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._position[1], 0.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._position[2], 10.0f - 9.81f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q._euler_angles[0], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q._euler_angles[0], 1.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._euler_angles[1], 0.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q._euler_angles[2], 1.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q._euler_angles[2], 0.0f, 0.0001f);
     q.step(1.0f, thrust, drag, torque);
     TEST_CHECK_FLOAT_VALUE(q._position[0], 0.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._position[1], 0.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._position[2], 10.0f - 3.0f*9.81f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q._euler_angles[0], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q._euler_angles[0], 3.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._euler_angles[1], 0.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q._euler_angles[2], 3.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q._euler_angles[2], 0.0f, 0.0001f);
 }
 
 BOOST_AUTO_TEST_CASE(test_thrust_with_torque) {
@@ -179,12 +179,12 @@ BOOST_AUTO_TEST_CASE(test_thrust_with_torque) {
     TEST_CHECK_FLOAT_VALUE(q._velocity[0], 0.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._velocity[1], 0.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._velocity[2], -8.81f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q._euler_angles[0], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q._euler_angles[0], 3.14159265f/2.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._euler_angles[1], 0.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q._euler_angles[2], 3.14159265f/2.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q._euler_derivatives[0], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q._euler_angles[2], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q._euler_derivatives[0], 3.14159265f/2.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._euler_derivatives[1], 0.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q._euler_derivatives[2], 3.14159265f/2.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q._euler_derivatives[2], 0.0f, 0.0001f);
     q.step(1.0f, thrust, drag, torque);
     TEST_CHECK_FLOAT_VALUE(q._position[0], 0.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._position[1], -1.0f, 0.0001f);
@@ -192,10 +192,10 @@ BOOST_AUTO_TEST_CASE(test_thrust_with_torque) {
     TEST_CHECK_FLOAT_VALUE(q._velocity[0], 0.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._velocity[1], -1.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._velocity[2], -9.81f -8.81f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q._euler_angles[0], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q._euler_angles[0], 3.0f*3.14159265f/2.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._euler_angles[1], 0.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q._euler_angles[2], 3.0f*3.14159265f/2.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q._euler_derivatives[0], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q._euler_angles[2], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q._euler_derivatives[0], 3.14159265f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q._euler_derivatives[1], 0.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q._euler_derivatives[2], 3.14159265f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q._euler_derivatives[2], 0.0f, 0.0001f);
 }

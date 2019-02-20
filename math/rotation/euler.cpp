@@ -5,7 +5,7 @@
 namespace FrameDrag {
 
 namespace {
-inline Matrix3f eulerToAngularVelocityConversionMatrix(const Vector3f &euler) {
+inline Matrix3f eulerToBodyFrameAngularVelocityConversionMatrix(const Vector3f &euler) {
   // Derivation:
   // R = (R_z)(R_y)(R_x)
   // dR/dt = (dR_z/dt)(R_y)(R_x) +
@@ -35,29 +35,39 @@ inline Matrix3f eulerToAngularVelocityConversionMatrix(const Vector3f &euler) {
   //         dpitch/dt*(R_z)y +
   //         droll/dt*(R_z)(R_y)x
   //
-  // ω	  =  (    0    )   ( -sin(yaw)*dpitch/dt )    (cos(yaw)*cos(pitch)*droll/dt)
-  //         (    0    ) + ( cos(yaw)*dpitch/dt  )  + (sin(yaw)*cos(pitch)*droll/dt)
-  //         ( dyaw/dt )   (        0            )    (-sin(pitch)*droll/dt )
+  // ω_b = R^T*ω
+  //     = dyaw/dt*(R_x^T)(R_y^T)(R_z^T)z +
+  //         dpitch/dt*(R_x^T)(R_y^T)(R_z^T)(R_z)y +
+  //         droll/dt*(R_x^T)(R_y^T)(R_z^T)(R_z)(R_y)x
+  //     = dyaw/dt*(R_x^T)(R_y^T)z +
+  //         dpitch/dt*(R_x^T)y +
+  //         droll/dt*x
+
+  // ω_b	 = ( droll/dt  )   (         0           )    (-sin(pitch)*dyaw/dt)
+  //         (    0    ) +   ( cos(roll)*dpitch/dt  )  + (sin(roll)*cos(pitch)*dyaw/dt)
+  //         (    0      )   ( -sin(roll)*dpitch/dt )    (cos(roll)*cos(pitch)*dyaw/dt )
   //
-  // because R_z * R_y = ( cos(yaw) -sin(yaw)  0 ) ( cos(pitch)  0 sin(pitch) )
-  //				             ( sin(yaw) cos(yaw)   0 ) (     0       1    0       )
-  //				             (    0        0       1 ) ( -sin(pitch) 0 cos(pitch) )
+  // because R_x^T * R_y^T = ( 1   0            0   )   ( cos(pitch)  0 -sin(pitch) )
+  //				                 ( 0 cos(roll)  sin(roll) ) (     0       1    0       )
+  //				                 ( 0 -sin(roll) cos(roll) ) ( sin(pitch)  0 cos(pitch) )
   //
-  // =>           = ( cos(yaw)*cos(pitch)  -sin(yaw)  cos(yaw)*sin(pitch) )
-  //				        ( sin(yaw)*cos(pitch)  cos(yaw)   sin(yaw)*sin(pitch) )
-  //				        ( -sin(pitch)             0       cos(pitch) )
+  // =>           = ( cos(pitch)              0        -sin(pitch) )
+  //				        ( sin(roll)*sin(pitch)  cos(roll)   sin(roll)*cos(pitch) )
+  //				        ( cos(roll)*sin(pitch) -sin(roll)   cos(roll)*cos(pitch) )
   //
-  // thus ω = ( 0  -sin(yaw)  cos(yaw)*cos(pitch) )( dyaw/dt   )
-  //          ( 0   cos(yaw)  sin(yaw)*cos(pitch) )( dpitch/dt )
-  //		      ( 1     0      -sin(pitch)          )( droll/dt )
-  const float yaw = euler[0];
+  // thus ω_b = ( 1     0             -sin(pitch)      )( droll/dt   )
+  //            ( 0   cos(roll)   sin(roll)*cos(pitch) )( dpitch/dt )
+  //		        ( 0   -sin(roll)  cos(roll)*cos(pitch) )( dyaw/dt )
+  const float roll = euler[0];
   const float pitch = euler[1];
-  const auto cosy = std::cos(yaw);
-  const auto siny = std::sin(yaw);
+  const auto cosr = std::cos(roll);
+  const auto sinr = std::sin(roll);
   const auto cosp = std::cos(pitch);
   const auto sinp = std::sin(pitch);
   return Matrix3f(
-      {0.0f, -siny, cosy * cosp, 0.0f, cosy, siny * cosp, 1.0f, 0.0f, -sinp});
+    {1.0f,  0.0f, -sinp, 
+     0.0f,  cosr, sinr*cosp, 
+     0.0f, -sinr, cosr*cosp});
 }
 }
 
@@ -90,10 +100,6 @@ Rotation ZYXEulerToRotationMatrix(float yaw, float pitch, float roll) {
                      cosy * cosr + siny * sinp * sinr,
                      -cosy * sinr + siny * sinp * cosr, -sinp, cosp * sinr,
                      cosp * cosr});
-}
-
-Rotation ZYXEulerToRotationMatrix(const Vector3f &euler) {
-  return ZYXEulerToRotationMatrix(euler[0], euler[1], euler[2]);
 }
 
 Rotation ZYXEulerToRotationQuaternion(float yaw, float pitch, float roll){
@@ -139,20 +145,21 @@ Rotation ZYXEulerToRotationQuaternion(const Vector3f &euler){
   return ZYXEulerToRotationQuaternion(euler[0], euler[1], euler[2]);
 }
 
-Vector3f ZYXEulerToAngularVelocity(const Vector3f &euler,
+Vector3f ZYXEulerToBodyFrameAngularVelocity(const Vector3f &euler,
                                    const Vector3f &euler_derivative) {
-  return eulerToAngularVelocityConversionMatrix(euler) * euler_derivative;
+  return eulerToBodyFrameAngularVelocityConversionMatrix(euler) * euler_derivative;
 }
 
-Vector3f ZYXEulerToAngularVelocity(float yaw, float pitch, float roll,
-                                   float yaw_deriv, float pitch_deriv,
-                                   float roll_deriv) {
-  return ZYXEulerToAngularVelocity(Vector3f{yaw, pitch, roll},
-                                   Vector3f{yaw, pitch, roll});
+Vector3f ZYXEulerToBodyFrameAngularVelocity(float roll, float pitch, float yaw,
+                                   float roll_deriv, float pitch_deriv,
+                                   float yaw_deriv) {
+  return ZYXEulerToBodyFrameAngularVelocity(Vector3f{roll, pitch, yaw},
+                                   Vector3f{roll_deriv, pitch_deriv, yaw_deriv});
 }
 
-Vector3f AngularVelocityToZYXEulerDerivatives(const Vector3f &euler,
+Vector3f BodyFrameAngularVelocityToZYXEulerDerivatives(const Vector3f &euler,
                                    const Vector3f &angular_velocity) {
-  return eulerToAngularVelocityConversionMatrix(euler).inverse() * angular_velocity;
+  return eulerToBodyFrameAngularVelocityConversionMatrix(euler).inverse() * angular_velocity;
 }
+
 }

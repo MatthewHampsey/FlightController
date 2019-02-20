@@ -35,6 +35,7 @@ public:
   Vector3f operator+(const Vector3f &v) const;
   Vector3f& operator+=(const Vector3f &v);
   Vector3f cross(const Vector3f &v) const;
+  Vector3f reverse() const;
 
   friend Vector3f operator*(float x, const Vector3f &v);
   friend Vector3f operator*(const Vector3f &v, float x);

@@ -147,8 +147,8 @@ BOOST_AUTO_TEST_CASE(test_roll_then_yaw) {
 
 BOOST_AUTO_TEST_CASE(test_velocity_x_axis) {
   FrameDrag::Vector3f e_ang{0.0f, 0.0f, 0.0f};
-  FrameDrag::Vector3f e_deriv{0.0f, 0.0f, 1.0f};
-  auto angular_velocity = ZYXEulerToAngularVelocity(e_ang, e_deriv);
+  FrameDrag::Vector3f e_deriv{1.0f, 0.0f, 0.0f};
+  auto angular_velocity = ZYXEulerToBodyFrameAngularVelocity(e_ang, e_deriv);
   TEST_CHECK_FLOAT_VALUE(angular_velocity[0], 1.0f, 0.001f);
   TEST_CHECK_FLOAT_VALUE(angular_velocity[1], 0.0f, 0.001f);
   TEST_CHECK_FLOAT_VALUE(angular_velocity[2], 0.0f, 0.001f);
@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(test_velocity_x_axis) {
 BOOST_AUTO_TEST_CASE(test_velocity_y_axis) {
   FrameDrag::Vector3f e_ang{0.0f, 0.0f, 0.0f};
   FrameDrag::Vector3f e_deriv{0.0f, 1.0f, 0.0f};
-  auto angular_velocity = ZYXEulerToAngularVelocity(e_ang, e_deriv);
+  auto angular_velocity = ZYXEulerToBodyFrameAngularVelocity(e_ang, e_deriv);
   TEST_CHECK_FLOAT_VALUE(angular_velocity[0], 0.0f, 0.001f);
   TEST_CHECK_FLOAT_VALUE(angular_velocity[1], 1.0f, 0.001f);
   TEST_CHECK_FLOAT_VALUE(angular_velocity[2], 0.0f, 0.001f);
@@ -165,8 +165,8 @@ BOOST_AUTO_TEST_CASE(test_velocity_y_axis) {
 
 BOOST_AUTO_TEST_CASE(test_velocity_z_axis) {
   FrameDrag::Vector3f e_ang{0.0f, 0.0f, 0.0f};
-  FrameDrag::Vector3f e_deriv{1.0f, 0.0f, 0.0f};
-  auto angular_velocity = ZYXEulerToAngularVelocity(e_ang, e_deriv);
+  FrameDrag::Vector3f e_deriv{0.0f, 0.0f, 1.0f};
+  auto angular_velocity = ZYXEulerToBodyFrameAngularVelocity(e_ang, e_deriv);
   TEST_CHECK_FLOAT_VALUE(angular_velocity[0], 0.0f, 0.001f);
   TEST_CHECK_FLOAT_VALUE(angular_velocity[1], 0.0f, 0.001f);
   TEST_CHECK_FLOAT_VALUE(angular_velocity[2], 1.0f, 0.001f);
@@ -175,17 +175,24 @@ BOOST_AUTO_TEST_CASE(test_velocity_z_axis) {
 BOOST_AUTO_TEST_CASE(test_velocity_rotated_x_axis) {
   for(auto &f : euler_to_rot_funcs){
     // rotate by pi/2 around y-axis, then pi/2 around z-axis
-    FrameDrag::Vector3f e_ang{3.14159265f / 2.0f, 3.14159265f / 2.0f, 0.0f};
-    FrameDrag::Vector3f e_deriv{0.0f, 0.0f, 1.0f};
-    auto angular_velocity = ZYXEulerToAngularVelocity(e_ang, e_deriv);
+    FrameDrag::Vector3f e_ang{0.0f, 3.14159265f / 2.0f, 3.14159265f / 2.0f};
+    FrameDrag::Vector3f e_deriv{1.0f, 0.0f, 0.0f};
+    auto angular_velocity = ZYXEulerToBodyFrameAngularVelocity(e_ang, e_deriv);
+    // ω_b = R^T*ω
+  //     = dyaw/dt*(R_x^T)(R_y^T)(R_z^T)z +
+  //         dpitch/dt*(R_x^T)(R_y^T)(R_z^T)(R_z)y +
+  //         droll/dt*(R_x^T)(R_y^T)(R_z^T)(R_z)(R_y)x
+  //     = dyaw/dt*(R_x^T)(R_y^T)z +
+  //         dpitch/dt*(R_x^T)y +
+  //         droll/dt*x
     FrameDrag::Vector3f angular_velocity2 =
-        e_deriv[0] * FrameDrag::Vector3f{0.0f, 0.0f, 1.0f} +
+        e_deriv[0] * FrameDrag::Vector3f{1.0f, 0.0f, 0.0f} +
         e_deriv[1] *
-            f(e_ang[0], 0.0f, 0.0f)
+            f(0.0f, 0.0f, e_ang[0]).inverse()
                 .apply(FrameDrag::Vector3f{0.0f, 1.0f, 0.0f}) +
         e_deriv[2] *
-            f(e_ang[0], e_ang[1], 0.0f)
-                .apply(FrameDrag::Vector3f{1.0f, 0.0f, 0.0f});
+            f(0.0f, e_ang[1], e_ang[0]).inverse()
+                .apply(FrameDrag::Vector3f{0.0f, 0.0f, 1.0f});
     TEST_CHECK_FLOAT_VALUE(angular_velocity[0], angular_velocity2[0], 0.001f);
     TEST_CHECK_FLOAT_VALUE(angular_velocity[1], angular_velocity2[1], 0.001f);
     TEST_CHECK_FLOAT_VALUE(angular_velocity[2], angular_velocity2[2], 0.001f);
@@ -195,17 +202,17 @@ BOOST_AUTO_TEST_CASE(test_velocity_rotated_x_axis) {
 BOOST_AUTO_TEST_CASE(test_velocity_rotated_x_axis_2) {
   for(auto &f : euler_to_rot_funcs){
     // rotate by pi/2 around y-axis, then pi/2 around z-axis
-    FrameDrag::Vector3f e_ang{3.14159265f / 2.0f, 3.14159265f, 0.0f};
-    FrameDrag::Vector3f e_deriv{0.0f, 0.0f, 1.0f};
-    auto angular_velocity = ZYXEulerToAngularVelocity(e_ang, e_deriv);
+    FrameDrag::Vector3f e_ang{0.0f, 3.14159265f, 3.14159265f / 2.0f};
+    FrameDrag::Vector3f e_deriv{1.0f, 0.0f, 0.0f};
+    auto angular_velocity = ZYXEulerToBodyFrameAngularVelocity(e_ang, e_deriv);
     FrameDrag::Vector3f angular_velocity2 =
-        e_deriv[0] * FrameDrag::Vector3f{0.0f, 0.0f, 1.0f} +
+        e_deriv[0] * FrameDrag::Vector3f{1.0f, 0.0f, 0.0f} +
         e_deriv[1] *
-            f(e_ang[0], 0.0f, 0.0f)
+            f(0.0f, 0.0f, e_ang[0]).inverse()
                 .apply(FrameDrag::Vector3f{0.0f, 1.0f, 0.0f}) +
         e_deriv[2] *
-            f(e_ang[0], e_ang[1], 0.0f)
-                .apply(FrameDrag::Vector3f{1.0f, 0.0f, 0.0f});
+            f(0.0f, e_ang[1], e_ang[0]).inverse()
+                .apply(FrameDrag::Vector3f{0.0f, 0.0f, 1.0f});
     TEST_CHECK_FLOAT_VALUE(angular_velocity[0], angular_velocity2[0], 0.001f);
     TEST_CHECK_FLOAT_VALUE(angular_velocity[1], angular_velocity2[1], 0.001f);
     TEST_CHECK_FLOAT_VALUE(angular_velocity[2], angular_velocity2[2], 0.001f);
@@ -214,20 +221,17 @@ BOOST_AUTO_TEST_CASE(test_velocity_rotated_x_axis_2) {
 
 BOOST_AUTO_TEST_CASE(test_velocity_rotated_y_axis) {
   for(auto &f : euler_to_rot_funcs){
-    FrameDrag::Vector3f e_ang{3.14159265f / 2.0f, 0.0f, 3.14159265f / 4.0f};
+    FrameDrag::Vector3f e_ang{3.14159265f / 4.0f, 0.0f, 3.14159265f / 2.0f};
     FrameDrag::Vector3f e_deriv{0.0f, 1.0f, 0.0f};
-    auto angular_velocity = ZYXEulerToAngularVelocity(e_ang, e_deriv);
-    // ω    =  dyaw/dt*z +
-    //         dpitch/dt*(R_z)y +
-    //         droll/dt*(R_z)(R_y)x
+    auto angular_velocity = ZYXEulerToBodyFrameAngularVelocity(e_ang, e_deriv);
     FrameDrag::Vector3f angular_velocity2 =
-        e_deriv[0] * FrameDrag::Vector3f{0.0f, 0.0f, 1.0f} +
+        e_deriv[0] * FrameDrag::Vector3f{1.0f, 0.0f, 0.0f} +
         e_deriv[1] *
-            f(e_ang[0], 0.0f, 0.0f)
+            f(0.0f, 0.0f, e_ang[0]).inverse()
                 .apply(FrameDrag::Vector3f{0.0f, 1.0f, 0.0f}) +
         e_deriv[2] *
-            f(e_ang[0], e_ang[1], 0.0f)
-                .apply(FrameDrag::Vector3f{1.0f, 0.0f, 0.0f});
+            f(0.0f, e_ang[1], e_ang[0]).inverse()
+                .apply(FrameDrag::Vector3f{0.0f, 0.0f, 1.0f});
     TEST_CHECK_FLOAT_VALUE(angular_velocity[0], angular_velocity2[0], 0.001f);
     TEST_CHECK_FLOAT_VALUE(angular_velocity[1], angular_velocity2[1], 0.001f);
     TEST_CHECK_FLOAT_VALUE(angular_velocity[2], angular_velocity2[2], 0.001f);
