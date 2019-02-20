@@ -3,5 +3,6 @@ project('FrameDrag', 'cpp',
 subdir('thirdparty')
 subdir('math')
 subdir('models')
+subdir('controllers')
 subdir('test')
 executable('foo', 'main.cpp', dependencies :[rotation_external_dep, framedrag_types_dep])

@@ -76,6 +76,12 @@ Vector3f Vector3f::cross(const Vector3f &v) const{
   return vv;
 }
 
+Vector3f Vector3f::reverse() const{
+  Vector3f vv;
+  vv._impl->_vec = _impl->_vec.reverse();
+  return vv;
+}
+
 Vector3f operator*(float x, const Vector3f &v) {
   Vector3f v2;
   v2._impl->_vec = x * (v._impl->_vec);

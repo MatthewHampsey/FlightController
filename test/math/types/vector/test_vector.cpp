@@ -116,3 +116,12 @@ BOOST_AUTO_TEST_CASE(test_vector_scalar_division) {
   TEST_CHECK_FLOAT_VALUE(v2[1], v[1] / scalar, Test::EPS);
   TEST_CHECK_FLOAT_VALUE(v2[2], v[2] / scalar, Test::EPS);
 }
+
+BOOST_AUTO_TEST_CASE(test_reverse) {
+  FrameDrag::Vector3f v{1.0f, 6.0f, 34.1f};
+  auto v2 = v.reverse();
+  float scalar = 3.0f;
+  TEST_CHECK_FLOAT_VALUE(v2[0], v[2], Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v2[1], v[1], Test::EPS);
+  TEST_CHECK_FLOAT_VALUE(v2[2], v[0], Test::EPS);
+}

@@ -23,9 +23,8 @@ class Quadcopter : Model{
     Vector3f _velocity{0.0f, 0.0f, 0.0f};
     Vector3f _euler_angles{0.0f, 0.0f, 0.0f};
     Vector3f _euler_derivatives{0.0f, 0.0f, 0.0f};
-    //moment of inertia is diagonal due to symmetry
     FrameDrag::Matrix3f _I{1.0f, 0.0f, 0.0f,
                           0.0f, 1.0f, 0.0f,
-                          0.0f, 0.0f, 1.0f};
+                          0.0f, 0.0f, 2.0f};
 };
 }
