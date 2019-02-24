@@ -1,5 +1,7 @@
 vector_sources = ['vector3f.h',
-                  'vector3f.cpp']
+                  'vector3f.cpp',
+                  'vector4f.h',
+                  'vector4f.cpp']
 
 vector_lib = shared_library('vector',
                             vector_sources,

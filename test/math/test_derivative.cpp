@@ -1,5 +1,5 @@
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE "VectorTest"
+#define BOOST_TEST_MODULE "DerivativeTest"
 #define BOOST_TEST_MAIN
 #include "derivative.h"
 #include "test_util.h"
