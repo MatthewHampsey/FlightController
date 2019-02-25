@@ -4,5 +4,5 @@
 #include <initializer_list>
 
 namespace FrameDrag {
-  using RotationMatrix = Matrix3f;
+using RotationMatrix = Matrix3f;
 }
