@@ -11,10 +11,7 @@ int main() {
   q.setPosition(Vector3f{0.0f, 0.0f, 30.0f});
   q.setEulerAngles(Vector3f{0.1f, 0.0f, 0.0f});
   PDDynamic controller{q.momentOfInertia()};
-  controller._K_p =
-      Matrix3f{0.1f, 0.0f, 0.0f, 0.0f, 0.1f, 0.0f, 0.0f, 0.0f, 0.1f};
-  controller._K_d =
-      Matrix3f{0.03f, 0.0f, 0.0f, 0.0f, 0.03f, 0.0f, 0.0f, 0.0f, 0.03f};
+  controller.setParameters(0.85, 1.0f);
   std::random_device rd{};
   std::mt19937 gen{rd()};
   std::normal_distribution<> d{0, 1.0};
