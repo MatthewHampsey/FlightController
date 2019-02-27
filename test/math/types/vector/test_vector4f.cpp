@@ -147,3 +147,10 @@ BOOST_AUTO_TEST_CASE(test_vector4f_reverse)
     TEST_CHECK_FLOAT_VALUE(v2[2], v[1], Test::EPS);
     TEST_CHECK_FLOAT_VALUE(v2[3], v[0], Test::EPS);
 }
+
+BOOST_AUTO_TEST_CASE(test_inner_product)
+{
+    FrameDrag::Vector4f v{1.0f, 5.4f, 0.1f, 3.4f};
+    FrameDrag::Vector4f v2{9.5f, 1.5f, 90.2f, 7.1f};
+    TEST_CHECK_FLOAT_VALUE(v.innerProduct(v2), v[0]*v2[0] + v[1]*v2[1] + v[2]*v2[2] + v[3]*v2[3], Test::EPS);
+}

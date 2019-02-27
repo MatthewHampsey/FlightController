@@ -3,7 +3,9 @@ subdir('private')
 rotation_sources = ['euler.cpp',
                     'euler.h',
                     'rotation.h',
-                    'rotation.cpp']
+                    'rotation.cpp',
+                    'angular_velocity_conversion.cpp',
+                    'angular_velocity_conversion.h']
 
 rotation_lib = shared_library('rotation',
                                rotation_sources,

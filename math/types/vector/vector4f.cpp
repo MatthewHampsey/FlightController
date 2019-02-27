@@ -96,6 +96,12 @@ Vector4f& Vector4f::operator+=(const Vector4f& v)
     return *this;
 }
 
+float Vector4f::innerProduct(const Vector4f& v) const
+{
+    const Eigen::Vector4f& lhs = _impl->_vec;; 
+    return lhs[0]*v[0] + lhs[1]*v[1] + lhs[2]*v[2] + lhs[3]*v[3];
+}
+
 Vector4f Vector4f::reverse() const
 {
     Vector4f vv;

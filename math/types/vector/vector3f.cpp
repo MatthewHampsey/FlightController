@@ -103,6 +103,12 @@ Vector3f Vector3f::cross(const Vector3f& v) const
     return vv;
 }
 
+float Vector3f::innerProduct(const Vector3f& v) const
+{
+    const Eigen::Vector3f& lhs = _impl->_vec;; 
+    return lhs[0]*v[0] + lhs[1]*v[1] + lhs[2]*v[2];
+}
+
 Vector3f Vector3f::reverse() const
 {
     Vector3f vv;

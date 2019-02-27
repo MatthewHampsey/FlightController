@@ -62,3 +62,74 @@ BOOST_AUTO_TEST_CASE(test_inverse)
     TEST_CHECK_FLOAT_VALUE(v[1], v3[1], 0.0001f);
     TEST_CHECK_FLOAT_VALUE(v[2], v3[2], 0.0001f);
 }
+
+BOOST_AUTO_TEST_CASE(test_accessors)
+{
+    FrameDrag::Quaternion q{ 3.0f, 1.5f, 6.8f, 9.1f };
+    TEST_CHECK_FLOAT_VALUE(q.re(), 3.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q.im()[0], 1.5f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q.im()[1], 6.8f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q.im()[2], 9.1f, 0.0001f);
+}
+
+BOOST_AUTO_TEST_CASE(test_scalar_multiplication)
+{
+    FrameDrag::Quaternion q{ 3.0f, 1.5f, 6.8f, 9.1f };
+    float scalar = 4.2f;
+    FrameDrag::Quaternion q2 = scalar * q;
+    TEST_CHECK_FLOAT_VALUE(q2.re(), scalar * q.re(), 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q2.im()[0], scalar * q.im()[0], 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q2.im()[1], scalar * q.im()[1], 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q2.im()[2], scalar * q.im()[2], 0.0001f);
+}
+
+BOOST_AUTO_TEST_CASE(test_quaternion_multiplication)
+{
+    FrameDrag::Quaternion q{ 3.0f, 1.5f, 6.8f, 9.1f };
+    FrameDrag::Quaternion q2{ 5.6f, 1.2f, 9.11f, 78.9f };
+    FrameDrag::Quaternion q3 = q * q2;
+
+    TEST_CHECK_FLOAT_VALUE(q3.re(), q.re() * q2.re() - q.im().innerProduct(q2.im()), 0.0001f);
+
+    auto scaled_q = q2.re() * q.im();
+    auto scaled_q2 = q.re() * q2.im();
+    auto cross_prod = q.im().cross(q2.im());
+    auto result = scaled_q + scaled_q2 + cross_prod;
+
+    TEST_CHECK_FLOAT_VALUE(q3.im()[0], result[0], 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q3.im()[1], result[1], 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q3.im()[2], result[2], 0.0001f);
+}
+
+BOOST_AUTO_TEST_CASE(test_scalar_division)
+{
+    FrameDrag::Quaternion q{ 3.0f, 1.5f, 6.8f, 9.1f };
+    float scalar = 4.2f;
+    FrameDrag::Quaternion q2 = q / scalar;
+    TEST_CHECK_FLOAT_VALUE(q2.re(), q.re() / scalar, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q2.im()[0], q.im()[0] / scalar, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q2.im()[1], q.im()[1] / scalar, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q2.im()[2], q.im()[2] / scalar, 0.0001f);
+}
+
+BOOST_AUTO_TEST_CASE(test_quaternion_addition)
+{
+    FrameDrag::Quaternion q{ 3.0f, 1.5f, 6.8f, 9.1f };
+    FrameDrag::Quaternion q2{ 5.1f, 4.1f, 6.0f, 92.4f };
+    auto q3 = q + q2;
+    TEST_CHECK_FLOAT_VALUE(q3.re(), q.re() + q2.re(), 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q3.im()[0], q.im()[0] + q2.im()[0], 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q3.im()[1], q.im()[1] + q2.im()[1], 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q3.im()[2], q.im()[2] + q2.im()[2], 0.0001f);
+}
+
+BOOST_AUTO_TEST_CASE(test_quaternion_subtraction)
+{
+    FrameDrag::Quaternion q{ 3.0f, 1.5f, 6.8f, 9.1f };
+    FrameDrag::Quaternion q2{ 5.1f, 4.1f, 6.0f, 92.4f };
+    auto q3 = q - q2;
+    TEST_CHECK_FLOAT_VALUE(q3.re(), q.re() - q2.re(), 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q3.im()[0], q.im()[0] - q2.im()[0], 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q3.im()[1], q.im()[1] - q2.im()[1], 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(q3.im()[2], q.im()[2] - q2.im()[2], 0.0001f);
+}
