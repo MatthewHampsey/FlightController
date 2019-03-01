@@ -55,19 +55,19 @@ BOOST_AUTO_TEST_CASE(test_pi_angle_quat)
 BOOST_AUTO_TEST_CASE(test_inverse)
 {
     FrameDrag::Quaternion q{ 3.0f, { 1.5f, 6.8f, 9.1f } };
-    TEST_CHECK_FLOAT_VALUE((q*q.inverse()).re(), 1.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE((q*q.inverse()).im()[0], 0.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE((q*q.inverse()).im()[1], 0.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE((q*q.inverse()).im()[2], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE((q * q.inverse()).re(), 1.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE((q * q.inverse()).im()[0], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE((q * q.inverse()).im()[1], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE((q * q.inverse()).im()[2], 0.0f, 0.0001f);
 }
 
 BOOST_AUTO_TEST_CASE(test_conjugate)
 {
     FrameDrag::Quaternion q{ 3.0f, { 1.5f, 6.8f, 9.1f } };
-    TEST_CHECK_FLOAT_VALUE((q*q.conjugate()).re(), 9.0f + 1.5f*1.5f + 6.8f*6.8f + 9.1f*9.1f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE((q*q.conjugate()).im()[0], 0.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE((q*q.conjugate()).im()[1], 0.0f, 0.0001f);
-    TEST_CHECK_FLOAT_VALUE((q*q.conjugate()).im()[2], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE((q * q.conjugate()).re(), 9.0f + 1.5f * 1.5f + 6.8f * 6.8f + 9.1f * 9.1f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE((q * q.conjugate()).im()[0], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE((q * q.conjugate()).im()[1], 0.0f, 0.0001f);
+    TEST_CHECK_FLOAT_VALUE((q * q.conjugate()).im()[2], 0.0f, 0.0001f);
 }
 
 BOOST_AUTO_TEST_CASE(test_accessors)
