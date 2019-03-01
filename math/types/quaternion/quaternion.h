@@ -1,6 +1,5 @@
 #pragma once
 #include "vector3f.h"
-#include <Eigen/Geometry>
 
 namespace FrameDrag {
 class Quaternion {
@@ -22,13 +21,14 @@ public:
     friend Quaternion operator*(const Quaternion& q, float x);
     friend Quaternion operator/(const Quaternion& q, float x);
 
+    Quaternion conjugate() const;
     Quaternion inverse() const;
 
-    float re() const;
-
-    Vector3f im() const;
+    float& re();
+    Vector3f& im();
 
 private:
-    Eigen::Quaternionf _quat;
+    Vector3f _imag;
+    float _real;
 };
 }

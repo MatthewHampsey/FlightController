@@ -6,7 +6,7 @@ namespace FrameDrag {
 Vector3f QuaternionToBodyFrameAngularVelocity(const Quaternion& q,
     const Quaternion& q_derivative)
 {
-    return 2.0f * (q.inverse() * q_derivative).im();
+    return 2.0f * (q.conjugate() * q_derivative).im();
 }
 
 Quaternion
