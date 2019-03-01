@@ -2,59 +2,54 @@
 
 namespace FrameDrag {
 Quaternion::Quaternion()
-    : _quat{ 0.0f, 0.0f, 0.0f, 0.0f }
+    : _imag{ 0.0f, 0.0f, 0.0f}
+    , _real{0.0f}
 {
 }
 
 Quaternion::Quaternion(float w, Vector3f&& v)
-    : _quat{ w, v[0], v[1], v[2] }
+    : _imag{v}
+    , _real{w}
 {
 }
 
 Quaternion::Quaternion(float w, const Vector3f& v)
-    : _quat{ w, v[0], v[1], v[2] }
+    : _imag{v}
+    , _real{w}
 {
 }
 
 Quaternion::Quaternion(float q1, float q2, float q3, float q4)
-    : _quat{ q1, q2, q3, q4 }
+    : _imag{q2, q3, q4}
+    , _real{q1} 
 {
 }
 
 Vector3f Quaternion::apply(const Vector3f& v) const
 {
-    Eigen::Quaternionf q_v{ 0.0f, v[0], v[1], v[2] };
-    auto rotated = _quat * q_v * _quat.inverse();
-    return Vector3f{ rotated.vec()[0], rotated.vec()[1], rotated.vec()[2] };
+    auto q = 2.0f*_imag.cross(v);
+    return v + _real*q + _imag.cross(q);
 }
 
 Quaternion Quaternion::operator*(const Quaternion& q) const
 {
-    Quaternion qq;
-    qq._quat = _quat * q._quat;
-    return qq;
+   return Quaternion{_real*q._real - _imag.innerProduct(q._imag),
+                     _real*q._imag + q._real*_imag + _imag.cross(q._imag)};
 }
 
 Quaternion Quaternion::operator+(const Quaternion& q) const
 {
-    Quaternion qq;
-    qq._quat.w() = _quat.w() + q._quat.w();
-    qq._quat.vec() = _quat.vec() + q._quat.vec();
-    return qq;
+    return Quaternion{_real + q._real, _imag + q._imag};
 }
 
 Quaternion Quaternion::operator-(const Quaternion& q) const
 {
-    Quaternion qq;
-    qq._quat.w() = _quat.w() - q._quat.w();
-    qq._quat.vec() = _quat.vec() - q._quat.vec();
-    return qq;
+    return Quaternion{_real - q._real, _imag - q._imag};
 }
 
 Quaternion operator*(float x, const Quaternion& q)
 {
-    auto v = q._quat.vec();
-    return Quaternion{ x * q._quat.w(), x * v[0], x * v[1], x * v[2] };
+    return Quaternion{x*q._real, x*q._imag};
 }
 
 Quaternion operator*(const Quaternion& q, float x)
@@ -64,24 +59,26 @@ Quaternion operator*(const Quaternion& q, float x)
 
 Quaternion operator/(const Quaternion& q, float x)
 {
-    return (1.0 / x) * q;
+    return Quaternion{q._real / x, q._imag / x};
+}
+
+Quaternion Quaternion::conjugate() const
+{
+    return Quaternion{_real, -1.0f*_imag};
 }
 
 Quaternion Quaternion::inverse() const
 {
-    Quaternion q;
-    q._quat = _quat.inverse();
-    return q;
+    return 1.0f/(_real*_real + _imag.innerProduct(_imag)) * conjugate();
 }
 
-float Quaternion::re() const
+float& Quaternion::re()
 {
-    return _quat.w();
+    return _real;
 }
 
-Vector3f Quaternion::im() const
+Vector3f& Quaternion::im()
 {
-    auto im = _quat.vec();
-    return Vector3f{ im[0], im[1], im[2] };
+    return _imag;
 }
 }
