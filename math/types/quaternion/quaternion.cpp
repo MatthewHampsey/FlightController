@@ -27,8 +27,18 @@ Quaternion::Quaternion(float q1, float q2, float q3, float q4)
 
 Vector3f Quaternion::apply(const Vector3f& v) const
 {
+    // (0, v') = qvq∗
+    //         = (re, im)(0, v)(re, -im)
+    //         = (-im⋅v, re*v + im×v)(re, -im)
+    //         = (-(im⋅v)*re + (re*v + im×v)⋅im,
+    //            (im⋅v)im + (re*v + im×v)re + (re*v + im×v)×(-im))
+    //         = (-(im⋅v)*re + (v⋅im)*re + (im×v)⋅im),
+    //            im×(im×v) + (im⋅im)v + (re*re)v + re(im×v) + re(im×v) + im×(im×v))
+    //         = (0, (re*re + im⋅im)v + 2*re(im×v) + 2*im×(im×v))
+    //         = (0, |q|^2 v + 2*re(im×v) + 2*im×(im×v))
+
     auto q = 2.0f * _imag.cross(v);
-    return v + _real * q + _imag.cross(q);
+    return (_real * _real + _imag.innerProduct(_imag)) * v + _real * q + _imag.cross(q);
 }
 
 Quaternion Quaternion::operator*(const Quaternion& q) const

@@ -140,3 +140,14 @@ BOOST_AUTO_TEST_CASE(test_quaternion_subtraction)
     TEST_CHECK_FLOAT_VALUE(q3.im()[1], q.im()[1] - q2.im()[1], 0.0001f);
     TEST_CHECK_FLOAT_VALUE(q3.im()[2], q.im()[2] - q2.im()[2], 0.0001f);
 }
+
+BOOST_AUTO_TEST_CASE(test_apply)
+{
+    FrameDrag::Quaternion q{ 3.0f, 1.5f, 6.8f, 7.1f };
+    FrameDrag::Vector3f vec{ 5.67f, 14.1, 2.9f };
+    auto result = q.apply(vec);
+    auto conj_result = (q * FrameDrag::Quaternion(0.0f, vec) * q.conjugate()).im();
+    TEST_CHECK_FLOAT_VALUE(result[0], conj_result[0], 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(result[1], conj_result[1], 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(result[2], conj_result[2], 0.0001f);
+}
