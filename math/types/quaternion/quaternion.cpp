@@ -1,4 +1,5 @@
 #include "quaternion.h"
+#include <cmath>
 
 namespace FrameDrag {
 Quaternion::Quaternion()
@@ -80,6 +81,12 @@ Quaternion Quaternion::conjugate() const
 Quaternion Quaternion::inverse() const
 {
     return 1.0f / (_real * _real + _imag.innerProduct(_imag)) * conjugate();
+}
+
+bool Quaternion::isApprox(const Quaternion& other, float prec) const
+{
+    return (std::abs(_real - other._real) <= prec*std::min(std::abs(_real),std::abs(other._real))) 
+        && _imag.isApprox(other._imag, prec);
 }
 
 float& Quaternion::re()

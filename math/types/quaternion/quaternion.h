@@ -24,6 +24,8 @@ public:
     Quaternion conjugate() const;
     Quaternion inverse() const;
 
+    bool isApprox(const Quaternion& other, float prec) const;
+
     float& re();
     Vector3f& im();
 

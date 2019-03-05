@@ -39,9 +39,9 @@ BOOST_AUTO_TEST_CASE(test_pi_angle_quat)
         std::sin(3.14159265f / 2.0f) * FrameDrag::Vector3f{ 0.0f, 1.0f, 0.0f } };
     auto vv = FrameDrag::Vector3f{ 0.0f, 1.0f, 0.0f };
     auto vv2 = q2.apply(vv);
-    TEST_CHECK_FLOAT_VALUE(vv2[0], vv[0], 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(vv2[1], vv[1], 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(vv2[2], vv[2], 0.0001f);
+
+    BOOST_CHECK(vv2.isApprox(vv, 0.0001f));
+
 
     FrameDrag::Quaternion q3{ std::cos(3.14159265f / 2.0f),
         std::sin(3.14159265f / 2.0f) * FrameDrag::Vector3f{ 0.0f, 0.0f, 1.0f } };
@@ -55,6 +55,8 @@ BOOST_AUTO_TEST_CASE(test_pi_angle_quat)
 BOOST_AUTO_TEST_CASE(test_inverse)
 {
     FrameDrag::Quaternion q{ 3.0f, { 1.5f, 6.8f, 9.1f } };
+    auto inverse = q*q.inverse();
+    
     TEST_CHECK_FLOAT_VALUE((q * q.inverse()).re(), 1.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE((q * q.inverse()).im()[0], 0.0f, 0.0001f);
     TEST_CHECK_FLOAT_VALUE((q * q.inverse()).im()[1], 0.0f, 0.0001f);
@@ -103,9 +105,7 @@ BOOST_AUTO_TEST_CASE(test_quaternion_multiplication)
     auto cross_prod = q.im().cross(q2.im());
     auto result = scaled_q + scaled_q2 + cross_prod;
 
-    TEST_CHECK_FLOAT_VALUE(q3.im()[0], result[0], 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q3.im()[1], result[1], 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(q3.im()[2], result[2], 0.0001f);
+    BOOST_CHECK(q3.im().isApprox(result, 0.0001f));
 }
 
 BOOST_AUTO_TEST_CASE(test_scalar_division)
@@ -147,7 +147,5 @@ BOOST_AUTO_TEST_CASE(test_apply)
     FrameDrag::Vector3f vec{ 5.67f, 14.1, 2.9f };
     auto result = q.apply(vec);
     auto conj_result = (q * FrameDrag::Quaternion(0.0f, vec) * q.conjugate()).im();
-    TEST_CHECK_FLOAT_VALUE(result[0], conj_result[0], 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(result[1], conj_result[1], 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(result[2], conj_result[2], 0.0001f);
+    BOOST_CHECK(result.isApprox(conj_result, 0.0001f));
 }

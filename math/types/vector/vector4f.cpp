@@ -109,6 +109,11 @@ Vector4f Vector4f::reverse() const
     return vv;
 }
 
+bool Vector4f::isApprox(const Vector4f& other, float prec) const
+{
+    return _impl->_vec.isApprox(other._impl->_vec, prec);
+}
+
 Vector4f operator*(float x, const Vector4f& v)
 {
     Vector4f v2;

@@ -38,6 +38,8 @@ public:
     float innerProduct(const Vector4f& v) const;
     Vector4f reverse() const;
 
+    bool isApprox(const Vector4f& other, float prec) const;
+
     friend Vector4f operator*(float x, const Vector4f& v);
     friend Vector4f operator*(const Vector4f& v, float x);
     friend Vector4f operator*(const Matrix4f& m, const Vector4f& v);

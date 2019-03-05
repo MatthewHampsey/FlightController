@@ -24,9 +24,7 @@ BOOST_AUTO_TEST_CASE(test_identity)
     FrameDrag::Vector3f in{ 0.0f, 1.5f, 20.6f };
     FrameDrag::Vector3f out = m * in;
 
-    TEST_CHECK_FLOAT_VALUE(in[0], out[0], Test::EPS);
-    TEST_CHECK_FLOAT_VALUE(in[1], out[1], Test::EPS);
-    TEST_CHECK_FLOAT_VALUE(in[2], out[2], Test::EPS);
+    BOOST_CHECK(in.isApprox(out, 0.001f));
 }
 
 BOOST_AUTO_TEST_CASE(test_matrix_copy_operator)
@@ -170,15 +168,10 @@ BOOST_AUTO_TEST_CASE(test_matrix_inverse)
 
     FrameDrag::Matrix3f I = m * m2;
 
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            if (i == j) {
-                TEST_CHECK_FLOAT_VALUE(I(i, j), 1.0f, Test::EPS);
-            } else {
-                TEST_CHECK_FLOAT_VALUE(I(i, j), 0.0f, Test::EPS);
-            }
-        }
-    }
+    BOOST_CHECK(I.isApprox(FrameDrag::Matrix3f{1.0f, 0.0f, 0.0f,
+                                               0.0f, 1.0f, 0.0f,
+                                               0.0f, 0.0f, 1.0f}, 0.001f));
+
 }
 
 BOOST_AUTO_TEST_CASE(test_matrix_scalar_multiplication)
@@ -231,10 +224,7 @@ BOOST_AUTO_TEST_CASE(test_matrix4f_identity)
     FrameDrag::Vector4f in{ 0.0f, 1.5f, 20.6f, 13.1f };
     FrameDrag::Vector4f out = m * in;
 
-    TEST_CHECK_FLOAT_VALUE(in[0], out[0], Test::EPS);
-    TEST_CHECK_FLOAT_VALUE(in[1], out[1], Test::EPS);
-    TEST_CHECK_FLOAT_VALUE(in[2], out[2], Test::EPS);
-    TEST_CHECK_FLOAT_VALUE(in[3], out[3], Test::EPS);
+    BOOST_CHECK(in.isApprox(out, 0.001f));
 }
 
 BOOST_AUTO_TEST_CASE(test_matrix4f_copy_operator)
@@ -407,15 +397,11 @@ BOOST_AUTO_TEST_CASE(test_matrix4f_inverse)
 
     FrameDrag::Matrix4f I = m * m2;
 
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            if (i == j) {
-                TEST_CHECK_FLOAT_VALUE(I(i, j), 1.0f, 0.0001f);
-            } else {
-                TEST_CHECK_FLOAT_VALUE(I(i, j), 0.0f, 0.0001f);
-            }
-        }
-    }
+    BOOST_CHECK(I.isApprox(FrameDrag::Matrix4f{1.0f, 0.0f, 0.0f, 0.0f,
+                                               0.0f, 1.0f, 0.0f, 0.0f,
+                                               0.0f, 0.0f, 1.0f, 0.0f,
+                                               0.0f, 0.0f, 0.0f, 1.0f}, 0.001f));
+
 }
 
 BOOST_AUTO_TEST_CASE(test_matrix4f_scalar_multiplication)

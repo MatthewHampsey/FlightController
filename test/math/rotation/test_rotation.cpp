@@ -152,9 +152,7 @@ BOOST_AUTO_TEST_CASE(test_velocity_x_axis)
     FrameDrag::Vector3f e_ang{ 0.0f, 0.0f, 0.0f };
     FrameDrag::Vector3f e_deriv{ 1.0f, 0.0f, 0.0f };
     auto angular_velocity = ZYXEulerToBodyFrameAngularVelocity(e_ang, e_deriv);
-    TEST_CHECK_FLOAT_VALUE(angular_velocity[0], 1.0f, 0.001f);
-    TEST_CHECK_FLOAT_VALUE(angular_velocity[1], 0.0f, 0.001f);
-    TEST_CHECK_FLOAT_VALUE(angular_velocity[2], 0.0f, 0.001f);
+    BOOST_CHECK(angular_velocity.isApprox(e_deriv, 0.01f));
 }
 
 BOOST_AUTO_TEST_CASE(test_velocity_y_axis)
@@ -162,9 +160,7 @@ BOOST_AUTO_TEST_CASE(test_velocity_y_axis)
     FrameDrag::Vector3f e_ang{ 0.0f, 0.0f, 0.0f };
     FrameDrag::Vector3f e_deriv{ 0.0f, 1.0f, 0.0f };
     auto angular_velocity = ZYXEulerToBodyFrameAngularVelocity(e_ang, e_deriv);
-    TEST_CHECK_FLOAT_VALUE(angular_velocity[0], 0.0f, 0.001f);
-    TEST_CHECK_FLOAT_VALUE(angular_velocity[1], 1.0f, 0.001f);
-    TEST_CHECK_FLOAT_VALUE(angular_velocity[2], 0.0f, 0.001f);
+    BOOST_CHECK(angular_velocity.isApprox(e_deriv, 0.01f));
 }
 
 BOOST_AUTO_TEST_CASE(test_velocity_z_axis)
@@ -172,9 +168,7 @@ BOOST_AUTO_TEST_CASE(test_velocity_z_axis)
     FrameDrag::Vector3f e_ang{ 0.0f, 0.0f, 0.0f };
     FrameDrag::Vector3f e_deriv{ 0.0f, 0.0f, 1.0f };
     auto angular_velocity = ZYXEulerToBodyFrameAngularVelocity(e_ang, e_deriv);
-    TEST_CHECK_FLOAT_VALUE(angular_velocity[0], 0.0f, 0.001f);
-    TEST_CHECK_FLOAT_VALUE(angular_velocity[1], 0.0f, 0.001f);
-    TEST_CHECK_FLOAT_VALUE(angular_velocity[2], 1.0f, 0.001f);
+    BOOST_CHECK(angular_velocity.isApprox(e_deriv, 0.01f));
 }
 
 BOOST_AUTO_TEST_CASE(test_velocity_rotated_x_axis)
@@ -192,9 +186,7 @@ BOOST_AUTO_TEST_CASE(test_velocity_rotated_x_axis)
         //         dpitch/dt*(R_x^T)y +
         //         droll/dt*x
         FrameDrag::Vector3f angular_velocity2 = e_deriv[0] * FrameDrag::Vector3f{ 1.0f, 0.0f, 0.0f } + e_deriv[1] * f(0.0f, 0.0f, e_ang[0]).inverse().apply(FrameDrag::Vector3f{ 0.0f, 1.0f, 0.0f }) + e_deriv[2] * f(0.0f, e_ang[1], e_ang[0]).inverse().apply(FrameDrag::Vector3f{ 0.0f, 0.0f, 1.0f });
-        TEST_CHECK_FLOAT_VALUE(angular_velocity[0], angular_velocity2[0], 0.001f);
-        TEST_CHECK_FLOAT_VALUE(angular_velocity[1], angular_velocity2[1], 0.001f);
-        TEST_CHECK_FLOAT_VALUE(angular_velocity[2], angular_velocity2[2], 0.001f);
+        BOOST_CHECK(angular_velocity.isApprox(angular_velocity2, 0.001f));
     }
 }
 
@@ -206,9 +198,7 @@ BOOST_AUTO_TEST_CASE(test_velocity_rotated_x_axis_2)
         FrameDrag::Vector3f e_deriv{ 1.0f, 0.0f, 0.0f };
         auto angular_velocity = ZYXEulerToBodyFrameAngularVelocity(e_ang, e_deriv);
         FrameDrag::Vector3f angular_velocity2 = e_deriv[0] * FrameDrag::Vector3f{ 1.0f, 0.0f, 0.0f } + e_deriv[1] * f(0.0f, 0.0f, e_ang[0]).inverse().apply(FrameDrag::Vector3f{ 0.0f, 1.0f, 0.0f }) + e_deriv[2] * f(0.0f, e_ang[1], e_ang[0]).inverse().apply(FrameDrag::Vector3f{ 0.0f, 0.0f, 1.0f });
-        TEST_CHECK_FLOAT_VALUE(angular_velocity[0], angular_velocity2[0], 0.001f);
-        TEST_CHECK_FLOAT_VALUE(angular_velocity[1], angular_velocity2[1], 0.001f);
-        TEST_CHECK_FLOAT_VALUE(angular_velocity[2], angular_velocity2[2], 0.001f);
+        BOOST_CHECK(angular_velocity.isApprox(angular_velocity2, 0.001f));
     }
 }
 
@@ -219,9 +209,7 @@ BOOST_AUTO_TEST_CASE(test_velocity_rotated_y_axis)
         FrameDrag::Vector3f e_deriv{ 0.0f, 1.0f, 0.0f };
         auto angular_velocity = ZYXEulerToBodyFrameAngularVelocity(e_ang, e_deriv);
         FrameDrag::Vector3f angular_velocity2 = e_deriv[0] * FrameDrag::Vector3f{ 1.0f, 0.0f, 0.0f } + e_deriv[1] * f(0.0f, 0.0f, e_ang[0]).inverse().apply(FrameDrag::Vector3f{ 0.0f, 1.0f, 0.0f }) + e_deriv[2] * f(0.0f, e_ang[1], e_ang[0]).inverse().apply(FrameDrag::Vector3f{ 0.0f, 0.0f, 1.0f });
-        TEST_CHECK_FLOAT_VALUE(angular_velocity[0], angular_velocity2[0], 0.001f);
-        TEST_CHECK_FLOAT_VALUE(angular_velocity[1], angular_velocity2[1], 0.001f);
-        TEST_CHECK_FLOAT_VALUE(angular_velocity[2], angular_velocity2[2], 0.001f);
+        BOOST_CHECK(angular_velocity.isApprox(angular_velocity2, 0.001f));
     }
 }
 
@@ -232,9 +220,6 @@ BOOST_AUTO_TEST_CASE(test_rot_inverse)
         FrameDrag::Vector3f v{ 5.0f, 3.2f, 9.1f };
         FrameDrag::Vector3f v2 = r.apply(v);
         FrameDrag::Vector3f v3 = r.inverse().apply(v2);
-
-        TEST_CHECK_FLOAT_VALUE(v[0], v3[0], 0.001f);
-        TEST_CHECK_FLOAT_VALUE(v[1], v3[1], 0.001f);
-        TEST_CHECK_FLOAT_VALUE(v[2], v3[2], 0.001f);
+        BOOST_CHECK(v.isApprox(v3, 0.001f));
     }
 }

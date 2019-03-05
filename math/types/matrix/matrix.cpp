@@ -121,6 +121,11 @@ Matrix3f operator/(const Matrix3f& m, float x)
     return m2;
 }
 
+bool Matrix3f::isApprox(const Matrix3f& other, float prec) const
+{
+    return _impl->_mat.isApprox(other._impl->_mat, prec);
+}
+
 Vector3f Matrix3f::apply(const Vector3f& v) { return *this * v; }
 
 struct Vector4f::impl {
@@ -238,6 +243,11 @@ Matrix4f operator/(const Matrix4f& m, float x)
     Matrix4f m2;
     m2._impl->_mat = m._impl->_mat / x;
     return m2;
+}
+
+bool Matrix4f::isApprox(const Matrix4f& other, float prec) const
+{
+    return _impl->_mat.isApprox(other._impl->_mat, prec);
 }
 
 Vector4f Matrix4f::apply(const Vector4f& v) { return *this * v; }

@@ -116,6 +116,11 @@ Vector3f Vector3f::reverse() const
     return vv;
 }
 
+bool Vector3f::isApprox(const Vector3f& other, float prec) const
+{
+    return _impl->_vec.isApprox(other._impl->_vec, prec);
+}
+
 Vector3f operator*(float x, const Vector3f& v)
 {
     Vector3f v2;

@@ -28,6 +28,7 @@ public:
     Matrix3f& operator-=(const Matrix3f& other);
     Matrix3f operator+(const Matrix3f& other) const;
     Matrix3f& operator+=(const Matrix3f& other);
+    bool isApprox(const Matrix3f& other, float prec) const;
     float& operator()(size_t i, size_t j);
     friend Vector3f operator*(const Matrix3f& m, const Vector3f& v);
     friend Matrix3f operator*(const Matrix3f& l, const Matrix3f& r);
@@ -63,6 +64,7 @@ public:
     Matrix4f& operator-=(const Matrix4f& other);
     Matrix4f operator+(const Matrix4f& other) const;
     Matrix4f& operator+=(const Matrix4f& other);
+    bool isApprox(const Matrix4f& other, float prec) const;
     float& operator()(size_t i, size_t j);
     friend Vector4f operator*(const Matrix4f& m, const Vector4f& v);
     friend Matrix4f operator*(const Matrix4f& l, const Matrix4f& r);

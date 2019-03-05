@@ -37,6 +37,8 @@ public:
     float innerProduct(const Vector3f& v) const;
     Vector3f reverse() const;
 
+    bool isApprox(const Vector3f& other, float prec) const;
+
     friend Vector3f operator*(float x, const Vector3f& v);
     friend Vector3f operator*(const Vector3f& v, float x);
     friend Vector3f operator*(const Matrix3f& m, const Vector3f& v);
