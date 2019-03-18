@@ -14,6 +14,9 @@ public:
 
     Vector3f apply(const Vector3f& v) const;
 
+    Quaternion& operator+=(const Quaternion& q);
+    Quaternion& operator-=(const Quaternion& q);
+
     Quaternion operator*(const Quaternion& q) const;
     Quaternion operator+(const Quaternion& q) const;
     Quaternion operator-(const Quaternion& q) const;
@@ -24,8 +27,12 @@ public:
     Quaternion conjugate() const;
     Quaternion inverse() const;
 
+    float norm() const;
+
     float& re();
+    const float& re() const;
     Vector3f& im();
+    const Vector3f& im() const;
 
 private:
     Vector3f _imag;

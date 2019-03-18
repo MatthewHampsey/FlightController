@@ -22,6 +22,7 @@ public:
     Matrix3f(Matrix3f&&) = default;
     Matrix3f& operator=(Matrix3f&&) = default;
     Matrix3f inverse();
+    Matrix3f tranpose();
 
     Matrix3f operator-() const;
     Matrix3f operator-(const Matrix3f& other) const;
@@ -57,6 +58,7 @@ public:
     Matrix4f(Matrix4f&&) = default;
     Matrix4f& operator=(Matrix4f&&) = default;
     Matrix4f inverse();
+    Matrix4f transpose();
 
     Matrix4f operator-() const;
     Matrix4f operator-(const Matrix4f& other) const;
