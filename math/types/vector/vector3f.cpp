@@ -96,6 +96,18 @@ Vector3f& Vector3f::operator+=(const Vector3f& v)
     return *this;
 }
 
+Vector3f& Vector3f::operator*=(float f)
+{
+    _impl->_vec *= f;
+    return *this;
+}
+
+Vector3f& Vector3f::operator/=(float f)
+{
+    _impl->_vec /= f;
+    return *this;
+}
+
 Vector3f Vector3f::cross(const Vector3f& v) const
 {
     Vector3f vv;
@@ -105,8 +117,8 @@ Vector3f Vector3f::cross(const Vector3f& v) const
 
 float Vector3f::innerProduct(const Vector3f& v) const
 {
-    const Eigen::Vector3f& lhs = _impl->_vec;; 
-    return lhs[0]*v[0] + lhs[1]*v[1] + lhs[2]*v[2];
+    const Eigen::Vector3f& lhs = _impl->_vec;
+    return lhs[0] * v[0] + lhs[1] * v[1] + lhs[2] * v[2];
 }
 
 Vector3f Vector3f::reverse() const

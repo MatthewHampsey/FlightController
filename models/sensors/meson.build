@@ -1,5 +1,9 @@
-sensor_sources = ['madgwick_filter.h',
-                  'madgwick_filter.cpp']
+sensor_sources = ['grad.h',
+                  'grad.cpp',
+                  'madgwick_marg_filter.h',
+                  'madgwick_marg_filter.cpp',
+                  'madgwick_imu_filter.h',
+                  'madgwick_imu_filter.cpp']
 
 sensor_lib = shared_library('sensors',
                              sensor_sources,

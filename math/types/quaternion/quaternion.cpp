@@ -56,6 +56,20 @@ Quaternion& Quaternion::operator-=(const Quaternion& q)
     return *this;
 }
 
+Quaternion& Quaternion::operator*=(float f)
+{
+    _real *= f;
+    _imag *= f;
+    return *this;
+}
+
+Quaternion& Quaternion::operator/=(float f)
+{
+    _real /= f;
+    _imag /= f;
+    return *this;
+}
+
 Quaternion Quaternion::operator*(const Quaternion& q) const
 {
     return Quaternion{ _real * q._real - _imag.innerProduct(q._imag),

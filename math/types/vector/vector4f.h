@@ -35,6 +35,8 @@ public:
     Vector4f& operator-=(const Vector4f& v);
     Vector4f operator+(const Vector4f& v) const;
     Vector4f& operator+=(const Vector4f& v);
+    Vector4f& operator*=(float f);
+    Vector4f& operator/=(float f);
     float innerProduct(const Vector4f& v) const;
     Vector4f reverse() const;
 
