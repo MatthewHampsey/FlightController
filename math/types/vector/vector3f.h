@@ -33,6 +33,8 @@ public:
     Vector3f& operator-=(const Vector3f& v);
     Vector3f operator+(const Vector3f& v) const;
     Vector3f& operator+=(const Vector3f& v);
+    Vector3f& operator*=(float f);
+    Vector3f& operator/=(float f);
     Vector3f cross(const Vector3f& v) const;
     float innerProduct(const Vector3f& v) const;
     Vector3f reverse() const;
