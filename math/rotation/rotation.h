@@ -1,7 +1,6 @@
 #pragma once
 #include "vector3f.h"
 #include <initializer_list>
-#include <iostream>
 #include <memory>
 
 namespace FrameDrag {

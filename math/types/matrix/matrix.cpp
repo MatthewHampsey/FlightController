@@ -58,6 +58,13 @@ Matrix3f Matrix3f::inverse()
     return inverse_matrix;
 }
 
+Matrix3f Matrix3f::tranpose()
+{
+    Matrix3f transpose_matrix;
+    transpose_matrix._impl->_mat = _impl->_mat.transpose();
+    return transpose_matrix;
+}
+
 Matrix3f Matrix3f::operator-() const
 {
     Matrix3f mm;
@@ -175,6 +182,13 @@ Matrix4f Matrix4f::inverse()
     Matrix4f inverse_matrix;
     inverse_matrix._impl->_mat = _impl->_mat.inverse();
     return inverse_matrix;
+}
+
+Matrix4f Matrix4f::transpose()
+{
+    Matrix4f transpose_matrix;
+    transpose_matrix._impl->_mat = _impl->_mat.transpose();
+    return transpose_matrix;
 }
 
 Matrix4f Matrix4f::operator-() const

@@ -1,3 +1,5 @@
+subdir('sensors')
+
 models_sources = ['model.h',
                   'quadcopter.h',
                   'quadcopter.cpp',

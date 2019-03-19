@@ -1,3 +1,5 @@
+subdir('sensors')
+
 models_test_sources = ['test_quadcopter.cpp']
 
 prop_controller_test_sources = ['test_prop_controller.cpp']

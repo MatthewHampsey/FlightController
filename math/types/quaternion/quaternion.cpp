@@ -1,4 +1,5 @@
 #include "quaternion.h"
+#include <cmath>
 
 namespace FrameDrag {
 Quaternion::Quaternion()
@@ -39,6 +40,20 @@ Vector3f Quaternion::apply(const Vector3f& v) const
 
     auto q = 2.0f * _imag.cross(v);
     return (_real * _real + _imag.innerProduct(_imag)) * v + _real * q + _imag.cross(q);
+}
+
+Quaternion& Quaternion::operator+=(const Quaternion& q)
+{
+    _real += q._real;
+    _imag += q._imag;
+    return *this;
+}
+
+Quaternion& Quaternion::operator-=(const Quaternion& q)
+{
+    _real -= q._real;
+    _imag -= q._imag;
+    return *this;
 }
 
 Quaternion Quaternion::operator*(const Quaternion& q) const
@@ -82,12 +97,27 @@ Quaternion Quaternion::inverse() const
     return 1.0f / (_real * _real + _imag.innerProduct(_imag)) * conjugate();
 }
 
+float Quaternion::norm() const
+{
+    return std::sqrt(_real * _real + _imag.innerProduct(_imag));
+}
+
 float& Quaternion::re()
 {
     return _real;
 }
 
+const float& Quaternion::re() const
+{
+    return _real;
+}
+
 Vector3f& Quaternion::im()
+{
+    return _imag;
+}
+
+const Vector3f& Quaternion::im() const
 {
     return _imag;
 }
