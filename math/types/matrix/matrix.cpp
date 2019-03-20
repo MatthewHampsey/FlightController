@@ -255,4 +255,106 @@ Matrix4f operator/(const Matrix4f& m, float x)
 }
 
 Vector4f Matrix4f::apply(const Vector4f& v) { return *this * v; }
+
+struct Matrix4x3f::impl {
+    impl(const std::initializer_list<float>& v)
+        : _mat{ Eigen::Matrix<float, 3, 4>{ v.begin() }.transpose() }
+    {
+    }
+    impl(const impl& other)
+        : _mat{ other._mat }
+    {
+    }
+    Eigen::Matrix<float, 4, 3> _mat;
+};
+
+Matrix4x3f::Matrix4x3f()
+    : _impl{ new impl{
+          0.0f, 0.0f, 0.0f,
+          0.0f, 0.0f, 0.0f,
+          0.0f, 0.0f, 0.0f,
+          0.0f, 0.0f, 0.0f } }
+{
+}
+
+Matrix4x3f::Matrix4x3f(const std::initializer_list<float>& v)
+    : _impl{ new impl{ v } }
+{
+}
+
+Matrix4x3f::Matrix4x3f(const Matrix4x3f& other)
+    : _impl{ new impl{ *other._impl } }
+{
+}
+
+Matrix4x3f& Matrix4x3f::operator=(const Matrix4x3f& other)
+{
+    Matrix4x3f m{ other };
+    return *this = std::move(m);
+}
+
+void Matrix4x3f::impl_deleter::operator()(Matrix4x3f::impl* ptr) const
+{
+    delete ptr;
+}
+
+float& Matrix4x3f::operator()(size_t i, size_t j) { return _impl->_mat(i, j); }
+
+Matrix4x3f Matrix4x3f::operator-() const
+{
+    Matrix4x3f mm;
+    mm._impl->_mat = -_impl->_mat;
+    return mm;
+}
+
+Matrix4x3f Matrix4x3f::operator-(const Matrix4x3f& m) const
+{
+    Matrix4x3f mm;
+    mm._impl->_mat = _impl->_mat - m._impl->_mat;
+    return mm;
+}
+
+Matrix4x3f& Matrix4x3f::operator-=(const Matrix4x3f& m)
+{
+    _impl->_mat -= m._impl->_mat;
+    return *this;
+}
+
+Matrix4x3f Matrix4x3f::operator+(const Matrix4x3f& m) const
+{
+    Matrix4x3f mm;
+    mm._impl->_mat = _impl->_mat + m._impl->_mat;
+    return mm;
+}
+
+Matrix4x3f& Matrix4x3f::operator+=(const Matrix4x3f& m)
+{
+    _impl->_mat += m._impl->_mat;
+    return *this;
+}
+
+Vector4f operator*(const Matrix4x3f& m, const Vector3f& v)
+{
+    Vector4f vv;
+    vv._impl->_vec = m._impl->_mat * v._impl->_vec;
+    return vv;
+}
+
+Matrix4x3f operator*(float x, const Matrix4x3f& m)
+{
+    Matrix4x3f m2;
+    m2._impl->_mat = x * m._impl->_mat;
+    return m2;
+}
+
+Matrix4x3f operator*(const Matrix4x3f& m, float x) { return x * m; }
+
+Matrix4x3f operator/(const Matrix4x3f& m, float x)
+{
+    Matrix4x3f m2;
+    m2._impl->_mat = m._impl->_mat / x;
+    return m2;
+}
+
+Vector4f Matrix4x3f::apply(const Vector3f& v) { return *this * v; }
 }

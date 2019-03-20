@@ -6,6 +6,8 @@
 namespace FrameDrag {
 
 class Matrix3f;
+class Matrix4x3f;
+class Vector4f;
 
 class Vector3f {
 
@@ -42,6 +44,7 @@ public:
     friend Vector3f operator*(float x, const Vector3f& v);
     friend Vector3f operator*(const Vector3f& v, float x);
     friend Vector3f operator*(const Matrix3f& m, const Vector3f& v);
+    friend Vector4f operator*(const Matrix4x3f& m, const Vector3f& v);
     friend Vector3f operator/(const Vector3f& v, float x);
     friend std::ostream& operator<<(std::ostream& os, const Vector3f& v);
 

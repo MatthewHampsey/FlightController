@@ -77,4 +77,37 @@ public:
 private:
     std::unique_ptr<impl, impl_deleter> _impl;
 };
+
+// Can't template this out because of pimpl. This should be
+// refactored if/when the pimpl is replaced.
+class Matrix4x3f {
+    struct impl;
+    struct impl_deleter {
+        void operator()(impl*) const;
+    };
+
+public:
+    Matrix4x3f();
+    Matrix4x3f(const std::initializer_list<float>& v);
+    Matrix4x3f(const Matrix4x3f& other);
+    Matrix4x3f& operator=(const Matrix4x3f& other);
+    Matrix4x3f(Matrix4x3f&&) = default;
+    Matrix4x3f& operator=(Matrix4x3f&&) = default;
+
+    Matrix4x3f operator-() const;
+    Matrix4x3f operator-(const Matrix4x3f& other) const;
+    Matrix4x3f& operator-=(const Matrix4x3f& other);
+    Matrix4x3f operator+(const Matrix4x3f& other) const;
+    Matrix4x3f& operator+=(const Matrix4x3f& other);
+    float& operator()(size_t i, size_t j);
+    friend Vector4f operator*(const Matrix4x3f& m, const Vector3f& v);
+    friend Matrix4x3f operator*(float x, const Matrix4x3f& m);
+    friend Matrix4x3f operator*(const Matrix4x3f& m, float x);
+    friend Matrix4x3f operator/(const Matrix4x3f& m, float x);
+
+    Vector4f apply(const Vector3f& v);
+
+private:
+    std::unique_ptr<impl, impl_deleter> _impl;
+};
 }

@@ -6,6 +6,8 @@
 namespace FrameDrag {
 
 class Matrix4f;
+class Matrix4x3f;
+class Vector3f;
 
 // Can't template this out because of pimpl. This should be
 // refactored if/when the pimpl is replaced.
@@ -43,6 +45,7 @@ public:
     friend Vector4f operator*(float x, const Vector4f& v);
     friend Vector4f operator*(const Vector4f& v, float x);
     friend Vector4f operator*(const Matrix4f& m, const Vector4f& v);
+    friend Vector4f operator*(const Matrix4x3f& m, const Vector3f& v);
     friend Vector4f operator/(const Vector4f& v, float x);
     friend std::ostream& operator<<(std::ostream& os, const Vector4f& v);
 
