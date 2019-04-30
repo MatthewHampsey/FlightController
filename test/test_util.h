@@ -2,6 +2,7 @@
 
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
+#include <cmath>
 
 namespace Test {
 constexpr float EPS = 0.00000001f;

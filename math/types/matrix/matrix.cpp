@@ -18,6 +18,7 @@ struct Matrix3f::impl {
         : _mat{ other._mat }
     {
     }
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Eigen::Matrix3f _mat;
 };
 
@@ -153,6 +154,7 @@ struct Matrix4f::impl {
         : _mat{ other._mat }
     {
     }
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Eigen::Matrix4f _mat;
 };
 
