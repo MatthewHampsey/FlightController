@@ -8,17 +8,7 @@
 #include <cmath>
 #include <random>
 #include <iostream>
-
-FrameDrag::Vector3f randomVector(float variance)
-{
-    std::default_random_engine generator;
-    std::normal_distribution<float> distribution(0.0f, variance);
-    return FrameDrag::Vector3f{
-        distribution(generator),
-        distribution(generator),
-        distribution(generator)
-    };
-}
+#include "common.h"
 
 BOOST_AUTO_TEST_CASE(test_grad)
 {
@@ -37,7 +27,7 @@ BOOST_AUTO_TEST_CASE(test_grad)
     auto next_guess = guess;
     float factor = 1.0f;
     int next_stage = 10;
-    for (int i = 0; i < 100000; i++) {
+    for (int i = 0; i < 1000; i++) {
         if (i % next_stage == 0) {
             next_stage *= 10;
             factor *= 0.1f;
@@ -50,10 +40,10 @@ BOOST_AUTO_TEST_CASE(test_grad)
                           measurement2);
         next_guess = next_guess - factor * grad / grad.norm();
     }
-    TEST_CHECK_FLOAT_VALUE(next_guess.re(), known_orientation_world_frame.re(), 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(next_guess.im()[0], known_orientation_world_frame.im()[0], 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(next_guess.im()[1], known_orientation_world_frame.im()[1], 0.0001f);
-    TEST_CHECK_FLOAT_VALUE(next_guess.im()[2], known_orientation_world_frame.im()[2], 0.0001f);
+    TEST_CHECK_FLOAT_VALUE(next_guess.re(), known_orientation_world_frame.re(), 0.01f);
+    TEST_CHECK_FLOAT_VALUE(next_guess.im()[0], known_orientation_world_frame.im()[0], 0.01f);
+    TEST_CHECK_FLOAT_VALUE(next_guess.im()[1], known_orientation_world_frame.im()[1], 0.01f);
+    TEST_CHECK_FLOAT_VALUE(next_guess.im()[2], known_orientation_world_frame.im()[2], 0.01f);
 }
 
 BOOST_AUTO_TEST_CASE(filter_marg_measurements)

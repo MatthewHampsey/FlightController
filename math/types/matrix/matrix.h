@@ -30,11 +30,13 @@ public:
     Matrix3f operator+(const Matrix3f& other) const;
     Matrix3f& operator+=(const Matrix3f& other);
     float& operator()(size_t i, size_t j);
+    const float& operator()(size_t i, size_t j) const;
     friend Vector3f operator*(const Matrix3f& m, const Vector3f& v);
     friend Matrix3f operator*(const Matrix3f& l, const Matrix3f& r);
     friend Matrix3f operator*(float x, const Matrix3f& m);
     friend Matrix3f operator*(const Matrix3f& m, float x);
     friend Matrix3f operator/(const Matrix3f& m, float x);
+    friend std::ostream& operator<<(std::ostream& os, const Matrix3f& v);
 
     Vector3f apply(const Vector3f& v);
 

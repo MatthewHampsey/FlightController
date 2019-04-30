@@ -50,6 +50,8 @@ void Matrix3f::impl_deleter::operator()(Matrix3f::impl* ptr) const
 }
 
 float& Matrix3f::operator()(size_t i, size_t j) { return _impl->_mat(i, j); }
+const float& Matrix3f::operator()(size_t i, size_t j) const { return _impl->_mat(i, j); }
+
 
 Matrix3f Matrix3f::inverse()
 {
@@ -129,6 +131,14 @@ Matrix3f operator/(const Matrix3f& m, float x)
 }
 
 Vector3f Matrix3f::apply(const Vector3f& v) { return *this * v; }
+
+std::ostream& operator<<(std::ostream& os, const Matrix3f& m)
+{
+    os << m(0, 0) << " " << m(0, 1) << " " << m(0, 2) << '\n'
+       << m(1, 0) << " " << m(1, 1) << " " << m(1, 2) << '\n'
+       << m(2, 0) << " " << m(2, 1) << " " << m(2, 2) << '\n';
+    return os;
+}
 
 struct Vector4f::impl {
     Eigen::Vector4f _vec;

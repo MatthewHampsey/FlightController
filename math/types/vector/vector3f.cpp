@@ -128,6 +128,11 @@ Vector3f Vector3f::reverse() const
     return vv;
 }
 
+float Vector3f::norm() const
+{
+    return _impl->_vec.norm();
+}
+
 Vector3f operator*(float x, const Vector3f& v)
 {
     Vector3f v2;
