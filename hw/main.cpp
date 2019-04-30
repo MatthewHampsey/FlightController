@@ -51,10 +51,10 @@ int main(){
   
   //close(fd);
 */
-  auto init_mag_m = mpu9250.readMag();
+  auto init_mag_m = mpu9250.readCalibratedMag();
   while((init_mag_m[0] + init_mag_m[1] + init_mag_m[2]) == 0.0f)
   {
-    init_mag_m = mpu9250.readMag(); 
+    init_mag_m = mpu9250.readCalibratedMag(); 
   }
   std::cout << "init mag: " << init_mag_m << '\n';
   init_mag_m[0] = std::sqrt(init_mag_m[0]*init_mag_m[0] + init_mag_m[1]*init_mag_m[1]);
@@ -87,7 +87,7 @@ int main(){
     auto gyro_m = mpu9250.readGyro();
     auto grav_m = mpu9250.readAcc();
     //grav_m[2] *= -1.0f; 
-    auto mag_m = mpu9250.readMag();
+    auto mag_m = mpu9250.readCalibratedMag();
     clock_t current_time = clock();
     float delta_t = float(current_time - prev_time) / CLOCKS_PER_SEC;// + 0.00000001;
     //filter.update(gyro_m,

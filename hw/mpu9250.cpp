@@ -8,6 +8,7 @@
 #include <linux/i2c-dev.h>
 #include <iostream>
 #include <exception>
+#include <limits>
 
 namespace FrameDrag{
 
@@ -104,9 +105,12 @@ MPU9250::MPU9250(const char * dev_path,
   auto asay = readReg(AK8963_REG::ASAY);
   auto asaz = readReg(AK8963_REG::ASAZ);
   
-  _H_scale[0] = (float)(asax-128)/256.0f + 1.0f;
-  _H_scale[1] = (float)(asay-128)/256.0f + 1.0f;
-  _H_scale[2] = (float)(asaz-128)/256.0f + 1.0f;
+  //16-bit twos complement measurement so measurements are scaled by 4912/32760 microTeslas (check datasheet)
+  float scale_factor = 4912.0f/32760.0f;
+
+  _H_scale[0] = scale_factor*(float)(asax-128)/256.0f + 1.0f;
+  _H_scale[1] = scale_factor*(float)(asay-128)/256.0f + 1.0f;
+  _H_scale[2] = scale_factor*(float)(asaz-128)/256.0f + 1.0f;
   
   //have to return to power down before switching to continuous read mode, check data sheet.
   writeReg(AK8963_REG::CNTL1, {0x00});
@@ -115,7 +119,7 @@ MPU9250::MPU9250(const char * dev_path,
   //continuous mode 2 0110 100Hz measurement
   //bit 4: 0 for 14-bit output, 1 for 16-bit output
   writeReg(AK8963_REG::CNTL1, {0b00010110}); //set to 16-bit output, mode 2
-
+  calibrateAK8963();
 
   if(ioctl(fd, I2C_SLAVE, 0x68) < 0)
   {       
@@ -258,6 +262,31 @@ Vector3f MPU9250::readAcc()
   return vec;
 }
 
+Vector3f MPU9250::readMagSensorValues()
+{
+  auto x = readLowHighReg(AK8963_REG::HXL, 0xFF, 0xFF);
+  auto y = readLowHighReg(AK8963_REG::HYL, 0xFF, 0xFF);
+  auto z = readLowHighReg(AK8963_REG::HZL, 0xFF, 0xFF);
+  
+  char overflow = readReg(AK8963_REG::ST2);
+  if((overflow & 0b00001000) != 0x00)
+  {
+    std::cout << "overflowed!" << '\n';
+    return _prev_H;
+  }
+  auto vec = Vector3f{(float)x*_H_scale[0], (float)y*_H_scale[1], (float)z*_H_scale[0]};
+  _prev_H = vec;
+  return vec;
+}
+
+Vector3f MPU9250::readCalibratedMag()
+{
+  auto mag = readMag() - _hard_iron_bias;
+  return Vector3f{mag[0]*_soft_iron_bias[0],
+                  mag[1]*_soft_iron_bias[1],
+                  mag[2]*_soft_iron_bias[2]};
+}
+
 Vector3f MPU9250::readMag()
 {
   if(ioctl(fd, I2C_SLAVE, 0x0C) < 0)
@@ -270,36 +299,20 @@ Vector3f MPU9250::readMag()
   {
     return _prev_H;
   }
+  return readMagSensorValues();
+}
 
-  auto x = readLowHighReg(AK8963_REG::HXL, 0xFF, 0xFF);
-  auto y = readLowHighReg(AK8963_REG::HYL, 0xFF, 0xFF);
-  auto z = readLowHighReg(AK8963_REG::HZL, 0xFF, 0xFF);
-  
-  char overflow = readReg(AK8963_REG::ST2);
-  if((overflow & 0b00001000) != 0x00)
-  {
-    std::cout << "overflowed!" << '\n';
-    return _prev_H;
+Vector3f MPU9250::readMagBlocking()
+{
+  if(ioctl(fd, I2C_SLAVE, 0x0C) < 0)
+  {       
+    std::string err = "Couldn't set i2c bus address 0x0C to I2C_SLAVE";
+    throw std::runtime_error(err);
   }
-  //float scale;
-  //switch(_acc_scale)
-  //{
-  //  case (AccelerometerScale::two_g):
-  //  scale = 2.0f*9.81f;
-  //  break;
-  //  case(AccelerometerScale::four_g):
-  //  scale = 4.0f*9.81f;
-  //  break;
-  //  case(AccelerometerScale::eight_g):
-  //  scale = 8.0f*9.81f;
-  //  break;
-  //  default:
-  //  scale = 16.0f*9.81f;
-  //}
-  //scale /= 32768.0f;*/
-  auto vec = Vector3f{(float)x*_H_scale[0], (float)y*_H_scale[1], (float)z*_H_scale[0]};
-  _prev_H = vec;
-  return vec;
+  
+  while((readReg(AK8963_REG::ST1) & 0x01) != 0x01){}
+
+  return readMagSensorValues();
 }
 
 void MPU9250::calibrate()
@@ -400,6 +413,36 @@ void MPU9250::calibrate()
   //writeReg(MPU9250_REG::YG_OFFSET_L, {data[3]});
   //writeReg(MPU9250_REG::ZG_OFFSET_H, {data[4]});
   //writeReg(MPU9250_REG::ZG_OFFSET_L, {data[5]});
+}
+
+void MPU9250::calibrateAK8963()
+{
+  std::cout << "beginning mag calibration" << '\n';
+  //std::vector<Vector3f> mag_values(1000);
+  Vector3f max_mag = {-std::numeric_limits<float>::max(),
+	              -std::numeric_limits<float>::max(),
+		      -std::numeric_limits<float>::max()};
+  Vector3f min_mag = {std::numeric_limits<float>::max(),
+	              std::numeric_limits<float>::max(),
+		      std::numeric_limits<float>::max()};
+  for(unsigned int i = 0; i < 1000; i++)
+  {
+    auto val = readMagBlocking();
+    max_mag[0] = std::max(max_mag[0], val[0]);
+    max_mag[1] = std::max(max_mag[1], val[1]);
+    max_mag[2] = std::max(max_mag[2], val[2]);
+    min_mag[0] = std::min(min_mag[0], val[0]);
+    min_mag[1] = std::min(min_mag[1], val[1]);
+    min_mag[2] = std::min(min_mag[2], val[2]);
+  }
+
+  _hard_iron_bias = (min_mag + max_mag)/2.0f;
+  
+  auto length_diff = (max_mag - min_mag)/2.0f;
+  float average_elliptical_length = (_soft_iron_bias[0] + _soft_iron_bias[1] + _soft_iron_bias[2])/2.0f;
+  _soft_iron_bias[0] = average_elliptical_length/length_diff[0];
+  _soft_iron_bias[1] = average_elliptical_length/length_diff[1];
+  _soft_iron_bias[2] = average_elliptical_length/length_diff[2];
 }
 
 void MPU9250::waitFor(const char addr, uint8_t mask, uint8_t value)

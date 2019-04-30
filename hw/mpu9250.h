@@ -87,9 +87,9 @@ class MPU9250
 
   Vector3f readGyro();
   Vector3f readAcc();
-  Vector3f readMag();
-
+  Vector3f readCalibratedMag();
   void calibrate();
+  void calibrateAK8963();
   void waitFor(const char addr, uint8_t mask, uint8_t value);
   private:
   int fd = -1;
@@ -99,5 +99,10 @@ class MPU9250
   Vector3f _accel_bias;
   Vector3f _H_scale;
   Vector3f _prev_H;
+  Vector3f _hard_iron_bias;
+  Vector3f _soft_iron_bias;
+  Vector3f readMag();
+  Vector3f readMagBlocking();
+  Vector3f readMagSensorValues();
 };
 }
