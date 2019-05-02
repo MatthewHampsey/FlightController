@@ -1,0 +1,5 @@
+{
+"soft_iron_bias": [36.0, 151.0, -248.0],
+"hard_iron_bias": [0.995, 1.022, 0.98],
+"debug": true
+}

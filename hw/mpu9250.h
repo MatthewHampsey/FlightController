@@ -88,9 +88,12 @@ class MPU9250
   Vector3f readGyro();
   Vector3f readAcc();
   Vector3f readCalibratedMag();
+  void setMagBiases(const Vector3f soft_iron_bias, const Vector3f hard_iron_bias);
+  std::pair<Vector3f, Vector3f> readGyroAndAcc();
   void calibrate();
   void calibrateAK8963();
   void waitFor(const char addr, uint8_t mask, uint8_t value);
+  void waitForMagMeasurement();
   private:
   int fd = -1;
   GyroScale _gyro_scale;
@@ -99,6 +102,9 @@ class MPU9250
   Vector3f _accel_bias;
   Vector3f _H_scale;
   Vector3f _prev_H;
+  Vector3f _prev_gyro;
+  Vector3f _prev_acc;
+
   Vector3f _hard_iron_bias;
   Vector3f _soft_iron_bias;
   Vector3f readMag();

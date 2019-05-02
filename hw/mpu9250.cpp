@@ -9,6 +9,7 @@
 #include <iostream>
 #include <exception>
 #include <limits>
+#include <bitset>
 
 namespace FrameDrag{
 
@@ -57,7 +58,6 @@ MPU9250::MPU9250(const char * dev_path,
   c = c & ~0x03;
   //clear scale selection bits [4:3]
   c = c & ~0x18;
-  std::cout << "gyro scale: " << static_cast<int32_t>(_gyro_scale) << '\n';
   c = c | (static_cast<char>(_gyro_scale) << 3);
      // c =| 0x00; // Set Fchoice for the gyro to 11 by writing its inverse to bits 1:0 of GYRO_CONFIG
   writeReg(MPU9250_REG::GYRO_CONFIG, {c});
@@ -72,10 +72,10 @@ MPU9250::MPU9250(const char * dev_path,
   c = c & ~0x0F; // Clear accel_fchoice_b (bit 3) and A_DLPFG (bits [2:0])
   c = c | 0x03;  // Set accelerometer rate to 1 kHz and bandwidth to 41 Hz
   writeReg(MPU9250_REG::ACCEL_CONFIG2, {c});
-
-  //set bit 5 (LATCH_INT_EN) to true, interrupt pin status is held until interrupt status is cleared
+  
+  //set bit 4 (INT_ANYRD_2CLEAR) to true, interrupt pin status is reset on a read
   //also set bit 1 (BYPASS_EN) to true so we can access the other i2c devices (eg. the magnetometer) on the chip
-  writeReg(MPU9250_REG::INT_PIN_CFG, {0b00100010});
+  writeReg(MPU9250_REG::INT_PIN_CFG, {0b00010010});
 
   //enable RAW_RDY_EN, allows the raw sensor data interrupt value to propagate to the interrupt pin
   writeReg(MPU9250_REG::INT_ENABLE, {0x01}); 
@@ -88,13 +88,10 @@ MPU9250::MPU9250(const char * dev_path,
   }
 
   auto mag_whoami = readReg(AK8963_REG::WIA);
-  std::cout << "mag whoami: " << (uint32_t)mag_whoami << '\n';
   if(mag_whoami != 0x48)
   {
-    throw std::runtime_error("mag whoami check failed"); }
-
-  char stat1 = readReg(AK8963_REG::ST1);
-  std::cout << "data ready? " << (stat1 & 0x01) << '\n';
+    throw std::runtime_error("mag whoami check failed");
+  }
 
   //power down mag
   writeReg(AK8963_REG::CNTL1, {0x00});
@@ -119,8 +116,7 @@ MPU9250::MPU9250(const char * dev_path,
   //continuous mode 2 0110 100Hz measurement
   //bit 4: 0 for 14-bit output, 1 for 16-bit output
   writeReg(AK8963_REG::CNTL1, {0b00010110}); //set to 16-bit output, mode 2
-  calibrateAK8963();
-
+ // calibrateAK8963();
   if(ioctl(fd, I2C_SLAVE, 0x68) < 0)
   {       
     std::string err = "Couldn't set " + std::string(dev_path) + " bus address 0x68 to I2C_SLAVE";
@@ -139,14 +135,14 @@ MPU9250::~MPU9250()
 
 char MPU9250::readReg(const char addr){
 
-  while(write(fd, &addr, 1) < 0){
+  if(write(fd, &addr, 1) < 0){
     std::cerr << "failed to write" << '\n';
-    //throw std::runtime_error("failed write");
+    throw std::runtime_error("failed write");
   }
   char recv;
   if(read(fd, &recv, 1) < 0){
     std::cerr << "failed to read" << '\n';
-    //throw std::runtime_error("failed read");
+    throw std::runtime_error("failed read");
   }
   return recv;
 }
@@ -169,10 +165,6 @@ void MPU9250::writeReg(const char addr, const std::vector<uint8_t>& data)
 {
   char full_data[data.size() + 1] = {addr};
   std::copy(data.begin(), data.end(), full_data + 1);
-  //std::cout << "writing: " << '\n';
-  for(unsigned int i = 0; i < data.size() + 1; i++){
-    std::cout << std::hex << (uint32_t)full_data[i] << '\n';
-  }  
   if(write(fd, full_data, data.size() + 1) < 0){
     std::cerr << "failed to write" << '\n';
     throw std::runtime_error("failed write");
@@ -183,7 +175,6 @@ int16_t MPU9250::readHighLowReg(const char addr, char maskH, char maskL)
 {
   char high = readReg(addr) & maskH;
   char low = readReg(addr + 1) & maskL;
-   //std::cout << std::dec << "later high low raw: " << (int32_t)high << "  " << (int32_t)low << '\n'; 
   return (int16_t)(((int16_t)high << 8) | low);
 }
 
@@ -201,10 +192,13 @@ Vector3f MPU9250::readGyro()
     std::string err = "Couldn't set i2c bus address 0x68 to I2C_SLAVE";
     throw std::runtime_error(err);
   }
+  while((readReg(MPU9250_REG::INT_STATUS) & 0x01) == 0)
+  {
+  }
+  
   auto x = readHighLowReg(0x43, 0xFF, 0xFF);
   auto y = readHighLowReg(0x45, 0xFF, 0xFF);
   auto z = readHighLowReg(0x47, 0xFF, 0xFF);
-  //std::cout << "raw gyro later vals: " << std::dec << x << "  " << y << "  " << z << '\n';
   float scale;
   switch(_gyro_scale)
   {
@@ -224,10 +218,78 @@ Vector3f MPU9250::readGyro()
   auto vec = Vector3f{static_cast<float>(x)*scale, 
 	  	      static_cast<float>(y)*scale, 
 		      static_cast<float>(z)*scale};
-  //std::cout << "gyro pre bias: " << std::dec << vec << '\n';
-  vec -= _gyro_bias;
-  //std::cout << "gyro: " << std::dec << vec << '\n';
   return vec;
+}
+
+
+void MPU9250::setMagBiases(const Vector3f soft_iron_bias, const Vector3f hard_iron_bias)
+{
+  _soft_iron_bias = soft_iron_bias;
+  _hard_iron_bias = hard_iron_bias;
+}
+
+std::pair<Vector3f, Vector3f> MPU9250::readGyroAndAcc()
+{
+  if(ioctl(fd, I2C_SLAVE, 0x68) < 0)
+  {       
+    std::string err = "Couldn't set i2c bus address 0x68 to I2C_SLAVE";
+    throw std::runtime_error(err);
+  }
+  //data not ready
+  if((readReg(MPU9250_REG::INT_STATUS) & 0x01) == 0)
+  {
+    return std::make_pair(_prev_gyro, _prev_acc);
+  }
+
+  auto g_x = readHighLowReg(0x43, 0xFF, 0xFF);
+  auto g_y = readHighLowReg(0x45, 0xFF, 0xFF);
+  auto g_z = readHighLowReg(0x47, 0xFF, 0xFF);
+  auto a_x = readHighLowReg(0x3B, 0xFF, 0xFF);
+  auto a_y = readHighLowReg(0x3D, 0xFF, 0xFF);
+  auto a_z = readHighLowReg(0x3F, 0xFF, 0xFF);
+  float g_scale;
+  switch(_gyro_scale)
+  {
+    case (GyroScale::two_hundred_and_fifty):
+    g_scale = 250.0f;
+    break;
+    case(GyroScale::five_hundred):
+    g_scale = 500.0f;
+    break;
+    case(GyroScale::one_thousand):
+    g_scale = 1000.0f;
+    break;
+    default:
+    g_scale = 2000.0f;
+  }
+  float a_scale;
+  switch(_acc_scale)
+  {
+    case (AccelerometerScale::two_g):
+    a_scale = 2.0f;
+    break;
+    case(AccelerometerScale::four_g):
+    a_scale = 4.0f;
+    break;
+    case(AccelerometerScale::eight_g):
+    a_scale = 8.0f;
+    break;
+    default:
+    a_scale = 16.0f;
+  }
+  
+  g_scale /= 32768.0f;
+  a_scale /= 32768.0f;
+  
+  
+  _prev_gyro = Vector3f{static_cast<float>(g_x)*g_scale, 
+	  	      static_cast<float>(g_y)*g_scale, 
+		      static_cast<float>(g_z)*g_scale};
+  _prev_acc = Vector3f{(float)a_x*a_scale, (float)a_y*a_scale, (float)a_z*a_scale};
+
+  _prev_acc -= _accel_bias;
+
+  return std::make_pair(_prev_gyro, _prev_acc);
 }
 
 Vector3f MPU9250::readAcc()
@@ -258,7 +320,6 @@ Vector3f MPU9250::readAcc()
   scale /= 32768.0f;
   auto vec = Vector3f{(float)x*scale, (float)y*scale, (float)z*scale};
   vec -= _accel_bias;
- // std::cout << "accel: " << vec << '\n';
   return vec;
 }
 
@@ -274,9 +335,8 @@ Vector3f MPU9250::readMagSensorValues()
     std::cout << "overflowed!" << '\n';
     return _prev_H;
   }
-  auto vec = Vector3f{(float)x*_H_scale[0], (float)y*_H_scale[1], (float)z*_H_scale[0]};
-  _prev_H = vec;
-  return vec;
+  _prev_H = Vector3f{(float)x*_H_scale[0], (float)y*_H_scale[1], (float)z*_H_scale[0]};
+  return _prev_H;
 }
 
 Vector3f MPU9250::readCalibratedMag()
@@ -346,23 +406,19 @@ void MPU9250::calibrate()
   writeReg(MPU9250_REG::GYRO_CONFIG, {0x00});  // Set gyro full-scale to 250 degrees per second, maximum sensitivity
   writeReg(MPU9250_REG::ACCEL_CONFIG, {0x00}); // Set accelerometer full-scale to 2 g, maximum sensitivity
 
-  int32_t gyrosensitivity  = 131;   // = 131 LSB/degrees/sec
   int32_t accelsensitivity = 16384; // = 16384 LSB/g
 
   uint16_t fifo_count = readHighLowReg(MPU9250_REG::FIFO_COUNTH, 0b0001111, 0xFF);
-  std::cout << "fifo count begin: " << std::dec << fifo_count << '\n';
 
   writeReg(MPU9250_REG::USER_CTRL, {0b01000000});   // Enable FIFO  
   writeReg(MPU9250_REG::FIFO_EN, {0b01111000});     // Enable gyro and accelerometer sensors for FIFO (max size 512 bytes in MPU-9250)
   usleep(40000); // accumulate 40 samples in 80 milliseconds = 480 bytes
 
   fifo_count = readHighLowReg(MPU9250_REG::FIFO_COUNTH, 0b0001111, 0xFF);
-  std::cout << "fifo count end: " << std::dec << fifo_count << '\n';
   int16_t packet_count = fifo_count/12;
   std::vector<int16_t> gyro_meas{0, 0, 0};
   std::vector<int16_t> accel_meas{0, 0, 0};
-  //std::vector<int32_t> gyro_bias{0, 0, 0};
-  //std::vector<int32_t> accel_bias{0, 0, 0};
+  std::vector<int32_t> gyro_bias{0, 0, 0};
   for (uint16_t i = 0; i < packet_count; i++) {
 	  
     auto data = readRegBytes(MPU9250_REG::FIFO_R_W, 12); // read data for averaging
@@ -372,60 +428,48 @@ void MPU9250::calibrate()
     gyro_meas[0]  = (int16_t) (((int16_t)data[6] << 8) | data[7]  ) ;
     gyro_meas[1]  = (int16_t) (((int16_t)data[8] << 8) | data[9]  ) ;
     gyro_meas[2]  = (int16_t) (((int16_t)data[10] << 8) | data[11]) ;
-    //std::cout << std::dec << "high low raw: " << (int32_t)data[6] << "  " << (int32_t)data[7] << '\n'; 
-    //std::cout << std::dec << "raw gyro vals: " << gyro_meas[0] << "  " << gyro_meas[1] << "  " << gyro_meas[2] << '\n';					      
-//  std::cout << "gyro messes: " << std::dec << (float)gyro_meas[0]/(float)gyrosensitivity << "   " << (float)gyro_meas[1]/(float)gyrosensitivity << "   " << (float)gyro_meas[2]/(float)gyrosensitivity << '\n'; 
-//  std::cout << "accel messes: " << std::dec << (float)accel_meas[0]/(float)gyrosensitivity << "   " << (float)accel_meas[1]/(float)gyrosensitivity << "   " << (float)accel_meas[2]/(float)gyrosensitivity << '\n'; 
     _accel_bias[0] += accel_meas[0]; // Sum individual signed 16-bit biases to get accumulated signed 32-bit biases
     _accel_bias[1] += accel_meas[1];
     _accel_bias[2] += accel_meas[2];
-    _gyro_bias[0]  += gyro_meas[0];
-    _gyro_bias[1]  += gyro_meas[1];
-    _gyro_bias[2]  += gyro_meas[2];								              
+    gyro_bias[0]  += gyro_meas[0];
+    gyro_bias[1]  += gyro_meas[1];
+    gyro_bias[2]  += gyro_meas[2];								              
   }
   float accel_scale = packet_count*accelsensitivity;
-  float gyro_scale = packet_count*gyrosensitivity;
   _accel_bias[0] /= accel_scale; // Normalize sums to get average count biases
   _accel_bias[1] /= accel_scale;
   _accel_bias[2] /= accel_scale;
-  _gyro_bias[0]  /= gyro_scale;
-  _gyro_bias[1]  /= gyro_scale;
-  _gyro_bias[2]  /= gyro_scale;
-
-  //std::cout << std::dec << "bs: " << gyro_bias[0] << "  " << gyro_bias[1] << "  " << gyro_bias[2] << '\n';					      
-
-  std::cout << "gyro biases: " << std::dec << _gyro_bias[0] << "   " << _gyro_bias[1] << "   " << _gyro_bias[2] << '\n'; 
-  std::cout << "acc biases: " << std::dec << _accel_bias[0] << "   " << _accel_bias[1] << "   " << _accel_bias[2] << '\n'; 
+  gyro_bias[0] /= (int32_t) packet_count;
+  gyro_bias[1] /= (int32_t) packet_count;
+  gyro_bias[2] /= (int32_t) packet_count;
     
-  if(_accel_bias[2] > 0L) {_accel_bias[2] += 1.0f;} // Remove gravity from the z-axis accelerometer bias calculation
-  else {_accel_bias[2] -= 1.0f;}
-  //std::vector<char> data(6);  
-  //data[0] = (-gyro_bias[0]/4  >> 8) & 0xFF; // Divide by 4 to get 32.9 LSB per deg/s to conform to expected bias input format
-  //data[1] = (-gyro_bias[0]/4)       & 0xFF; // Biases are additive, so change sign on calculated average gyro biases
-  //data[2] = (-gyro_bias[1]/4  >> 8) & 0xFF;
-  //data[3] = (-gyro_bias[1]/4)       & 0xFF;
-  //data[4] = (-gyro_bias[2]/4  >> 8) & 0xFF;
-  //data[5] = (-gyro_bias[2]/4) & 0xFF;
+  if(_accel_bias[2] > 0L) {_accel_bias[2] -= 1.0f;} // Remove gravity from the z-axis accelerometer bias calculation
+  else {_accel_bias[2] += 1.0f;}
+  std::vector<char> data(6);  
+  data[0] = (-gyro_bias[0]/4  >> 8) & 0xFF; // Divide by 4 to get 32.9 LSB per deg/s to conform to expected bias input format
+  data[1] = (-gyro_bias[0]/4)       & 0xFF; // Biases are additive, so change sign on calculated average gyro biases
+  data[2] = (-gyro_bias[1]/4  >> 8) & 0xFF;
+  data[3] = (-gyro_bias[1]/4)       & 0xFF;
+  data[4] = (-gyro_bias[2]/4  >> 8) & 0xFF;
+  data[5] = (-gyro_bias[2]/4) & 0xFF;
 
-  //writeReg(MPU9250_REG::XG_OFFSET_H, {data[0]});
-  //writeReg(MPU9250_REG::XG_OFFSET_L, {data[1]});
-  //writeReg(MPU9250_REG::XG_OFFSET_H, {data[2]});
-  //writeReg(MPU9250_REG::YG_OFFSET_L, {data[3]});
-  //writeReg(MPU9250_REG::ZG_OFFSET_H, {data[4]});
-  //writeReg(MPU9250_REG::ZG_OFFSET_L, {data[5]});
+  writeReg(MPU9250_REG::XG_OFFSET_H, {data[0]});
+  writeReg(MPU9250_REG::XG_OFFSET_L, {data[1]});
+  writeReg(MPU9250_REG::YG_OFFSET_H, {data[2]});
+  writeReg(MPU9250_REG::YG_OFFSET_L, {data[3]});
+  writeReg(MPU9250_REG::ZG_OFFSET_H, {data[4]});
+  writeReg(MPU9250_REG::ZG_OFFSET_L, {data[5]});
 }
 
 void MPU9250::calibrateAK8963()
 {
-  std::cout << "beginning mag calibration" << '\n';
-  //std::vector<Vector3f> mag_values(1000);
   Vector3f max_mag = {-std::numeric_limits<float>::max(),
 	              -std::numeric_limits<float>::max(),
 		      -std::numeric_limits<float>::max()};
   Vector3f min_mag = {std::numeric_limits<float>::max(),
 	              std::numeric_limits<float>::max(),
 		      std::numeric_limits<float>::max()};
-  for(unsigned int i = 0; i < 1000; i++)
+  for(unsigned int i = 0; i < 3000; i++)
   {
     auto val = readMagBlocking();
     max_mag[0] = std::max(max_mag[0], val[0]);
@@ -439,20 +483,35 @@ void MPU9250::calibrateAK8963()
   _hard_iron_bias = (min_mag + max_mag)/2.0f;
   
   auto length_diff = (max_mag - min_mag)/2.0f;
-  float average_elliptical_length = (_soft_iron_bias[0] + _soft_iron_bias[1] + _soft_iron_bias[2])/2.0f;
+  float average_elliptical_length = (length_diff[0] + length_diff[1] + length_diff[2])/3.0f;
   _soft_iron_bias[0] = average_elliptical_length/length_diff[0];
   _soft_iron_bias[1] = average_elliptical_length/length_diff[1];
   _soft_iron_bias[2] = average_elliptical_length/length_diff[2];
+
+  std::cout << "hard iron bias: " << _hard_iron_bias << '\n';
+  std::cout << "soft iron bias: " << _soft_iron_bias << '\n';
 }
 
 void MPU9250::waitFor(const char addr, uint8_t mask, uint8_t value)
 {
-  //char val;
-	std::cout << "doing wait" << '\n';
+  if(ioctl(fd, I2C_SLAVE, 0x68) < 0)
+  {       
+    std::string err = "Couldn't set i2c bus address 0x68 to I2C_SLAVE";
+    throw std::runtime_error(err);
+  }
   while((readReg(addr) & mask) != value)
   {
-    std::cout << "not ready" << '\n';
   }
+}
+
+void MPU9250::waitForMagMeasurement()
+{
+  if(ioctl(fd, I2C_SLAVE, 0x0C) < 0)
+  {       
+    std::string err = "Couldn't set i2c bus address 0x68 to I2C_SLAVE";
+    throw std::runtime_error(err);
+  }
+  while((readReg(AK8963_REG::ST1) & 0x01) != 0x01){}
 }
 
 }
