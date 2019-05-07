@@ -96,8 +96,10 @@ class MPU9250
   void waitForMagMeasurement();
   private:
   int fd = -1;
-  GyroScale _gyro_scale;
-  AccelerometerScale _acc_scale;
+  GyroScale _gyro_scale_bits;
+  AccelerometerScale _accel_scale_bits;
+  float _gyro_scale;
+  float _accel_scale;
   Vector3f _gyro_bias;
   Vector3f _accel_bias;
   Vector3f _H_scale;

@@ -16,9 +16,38 @@ namespace FrameDrag{
 MPU9250::MPU9250(const char * dev_path,
 		 GyroScale gyro_scale,
 		 AccelerometerScale acc_scale)
-	: _gyro_scale(gyro_scale)
-	, _acc_scale(acc_scale)
+	: _gyro_scale_bits(gyro_scale)
+	, _accel_scale_bits(acc_scale)
 {
+  switch(gyro_scale)
+  {
+    case (GyroScale::two_hundred_and_fifty):
+    _gyro_scale = 250.0f/32768.0f;
+    break;
+    case(GyroScale::five_hundred):
+    _gyro_scale = 500.0f/32768.0f;
+    break;
+    case(GyroScale::one_thousand):
+    _gyro_scale = 1000.0f/32768.0f;
+    break;
+    default:
+    _gyro_scale = 2000.0f/32768.0f;
+  }
+  switch(acc_scale)
+  {
+    case (AccelerometerScale::two_g):
+    _accel_scale = 2.0f/32768.0f;
+    break;
+    case(AccelerometerScale::four_g):
+    _accel_scale = 4.0f/32768.0f;
+    break;
+    case(AccelerometerScale::eight_g):
+    _accel_scale = 8.0f/32768.0f;
+    break;
+    default:
+    _accel_scale = 16.0f/32768.0f;
+  }
+  
   if((fd = open(dev_path, O_RDWR)) < 0)
   {
     std::string err = "Couldn't open " + std::string(dev_path);
@@ -35,10 +64,8 @@ MPU9250::MPU9250(const char * dev_path,
   if(whoami != 0x71){
     throw std::runtime_error("whoami check failed");
   }
-  //calibrate();
-  //clear sleep bit, set to use 20 MHz internal oscillator
-  //writeReg(MPU9250_REG::PWR_MGMT_1, {0x08});
   calibrate();
+  //clear sleep bit, set to use 20 MHz internal oscillator
   writeReg(MPU9250_REG::PWR_MGMT_1, {0x00});
   waitFor(MPU9250_REG::INT_STATUS, 0x01, 0x01);
 
@@ -58,14 +85,14 @@ MPU9250::MPU9250(const char * dev_path,
   c = c & ~0x03;
   //clear scale selection bits [4:3]
   c = c & ~0x18;
-  c = c | (static_cast<char>(_gyro_scale) << 3);
+  c = c | (static_cast<char>(_gyro_scale_bits) << 3);
      // c =| 0x00; // Set Fchoice for the gyro to 11 by writing its inverse to bits 1:0 of GYRO_CONFIG
   writeReg(MPU9250_REG::GYRO_CONFIG, {c});
   
   c = readReg(MPU9250_REG::ACCEL_CONFIG);
   //clear scale selection bits
   c = c & ~0x18;
-  c = c | (static_cast<uint8_t>(_acc_scale) << 3);
+  c = c | (static_cast<uint8_t>(_accel_scale_bits) << 3);
   writeReg(MPU9250_REG::ACCEL_CONFIG, {c});
   
   c = readReg(MPU9250_REG::ACCEL_CONFIG2); // get current ACCEL_CONFIG2 register value
@@ -149,8 +176,9 @@ char MPU9250::readReg(const char addr){
 
 std::vector<char> MPU9250::readRegBytes(const char addr, size_t length){
 
-  while(write(fd, &addr, 1) < 0){
+  if(write(fd, &addr, 1) < 0){
     std::cerr << "failed to write" << '\n';
+    
     //throw std::runtime_error("failed write");
   }
   std::vector<char> recv(length, 0);
@@ -199,25 +227,9 @@ Vector3f MPU9250::readGyro()
   auto x = readHighLowReg(0x43, 0xFF, 0xFF);
   auto y = readHighLowReg(0x45, 0xFF, 0xFF);
   auto z = readHighLowReg(0x47, 0xFF, 0xFF);
-  float scale;
-  switch(_gyro_scale)
-  {
-    case (GyroScale::two_hundred_and_fifty):
-    scale = 250.0f;
-    break;
-    case(GyroScale::five_hundred):
-    scale = 500.0f;
-    break;
-    case(GyroScale::one_thousand):
-    scale = 1000.0f;
-    break;
-    default:
-    scale = 2000.0f;
-  }
-  scale /= 32768.0f;
-  auto vec = Vector3f{static_cast<float>(x)*scale, 
-	  	      static_cast<float>(y)*scale, 
-		      static_cast<float>(z)*scale};
+  auto vec = Vector3f{static_cast<float>(x)*_gyro_scale, 
+	  	      static_cast<float>(y)*_gyro_scale, 
+		      static_cast<float>(z)*_gyro_scale};
   return vec;
 }
 
@@ -247,45 +259,11 @@ std::pair<Vector3f, Vector3f> MPU9250::readGyroAndAcc()
   auto a_x = readHighLowReg(0x3B, 0xFF, 0xFF);
   auto a_y = readHighLowReg(0x3D, 0xFF, 0xFF);
   auto a_z = readHighLowReg(0x3F, 0xFF, 0xFF);
-  float g_scale;
-  switch(_gyro_scale)
-  {
-    case (GyroScale::two_hundred_and_fifty):
-    g_scale = 250.0f;
-    break;
-    case(GyroScale::five_hundred):
-    g_scale = 500.0f;
-    break;
-    case(GyroScale::one_thousand):
-    g_scale = 1000.0f;
-    break;
-    default:
-    g_scale = 2000.0f;
-  }
-  float a_scale;
-  switch(_acc_scale)
-  {
-    case (AccelerometerScale::two_g):
-    a_scale = 2.0f;
-    break;
-    case(AccelerometerScale::four_g):
-    a_scale = 4.0f;
-    break;
-    case(AccelerometerScale::eight_g):
-    a_scale = 8.0f;
-    break;
-    default:
-    a_scale = 16.0f;
-  }
   
-  g_scale /= 32768.0f;
-  a_scale /= 32768.0f;
-  
-  
-  _prev_gyro = Vector3f{static_cast<float>(g_x)*g_scale, 
-	  	      static_cast<float>(g_y)*g_scale, 
-		      static_cast<float>(g_z)*g_scale};
-  _prev_acc = Vector3f{(float)a_x*a_scale, (float)a_y*a_scale, (float)a_z*a_scale};
+  _prev_gyro = Vector3f{static_cast<float>(g_x)*_gyro_scale, 
+	  	      static_cast<float>(g_y)*_gyro_scale, 
+		      static_cast<float>(g_z)*_gyro_scale};
+  _prev_acc = Vector3f{(float)a_x*_accel_scale, (float)a_y*_accel_scale, (float)a_z*_accel_scale};
 
   _prev_acc -= _accel_bias;
 
@@ -302,23 +280,7 @@ Vector3f MPU9250::readAcc()
   auto x = readHighLowReg(0x3B, 0xFF, 0xFF);
   auto y = readHighLowReg(0x3D, 0xFF, 0xFF);
   auto z = readHighLowReg(0x3F, 0xFF, 0xFF);
-  float scale;
-  switch(_acc_scale)
-  {
-    case (AccelerometerScale::two_g):
-    scale = 2.0f;
-    break;
-    case(AccelerometerScale::four_g):
-    scale = 4.0f;
-    break;
-    case(AccelerometerScale::eight_g):
-    scale = 8.0f;
-    break;
-    default:
-    scale = 16.0f;
-  }
-  scale /= 32768.0f;
-  auto vec = Vector3f{(float)x*scale, (float)y*scale, (float)z*scale};
+  auto vec = Vector3f{(float)x*_accel_scale, (float)y*_accel_scale, (float)z*_accel_scale};
   vec -= _accel_bias;
   return vec;
 }
@@ -445,7 +407,7 @@ void MPU9250::calibrate()
     
   if(_accel_bias[2] > 0L) {_accel_bias[2] -= 1.0f;} // Remove gravity from the z-axis accelerometer bias calculation
   else {_accel_bias[2] += 1.0f;}
-  std::vector<char> data(6);  
+  std::vector<uint8_t> data(6);  
   data[0] = (-gyro_bias[0]/4  >> 8) & 0xFF; // Divide by 4 to get 32.9 LSB per deg/s to conform to expected bias input format
   data[1] = (-gyro_bias[0]/4)       & 0xFF; // Biases are additive, so change sign on calculated average gyro biases
   data[2] = (-gyro_bias[1]/4  >> 8) & 0xFF;
