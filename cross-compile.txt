@@ -1,0 +1,20 @@
+[binaries]
+c = '/usr/bin/arm-linux-gnueabihf-gcc'
+cpp = '/usr/bin/arm-linux-gnueabihf-g++'
+ar = '/usr/bin/arm-linux-gnueabihf-ar'
+strip = '/usr/bin/arm-linux-gnueabihf-strip'
+pkgconfig = '/usr/bin/arm-linux-pkg-config'
+
+[properties]
+
+[host_machine]
+system = 'linux'
+cpu_family = 'x86'
+cpu = 'i5-4210U'
+endian = 'little'
+
+[target_machine]
+system = 'linux'
+cpu_family = 'arm'
+cpu = 'M3'
+endian = 'little'

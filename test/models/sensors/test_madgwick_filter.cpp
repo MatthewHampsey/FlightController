@@ -4,7 +4,7 @@
 #include "madgwick_marg_filter.h"
 #include "madgwick_imu_filter.h"
 #include "test_util.h"
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <cmath>
 #include <random>
 #include <iostream>

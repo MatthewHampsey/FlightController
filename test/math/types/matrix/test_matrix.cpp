@@ -5,7 +5,7 @@
 #include "test_util.h"
 #include "vector3f.h"
 #include "vector4f.h"
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 
 BOOST_AUTO_TEST_CASE(test_matrix_default_construction)
 {

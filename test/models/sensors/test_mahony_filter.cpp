@@ -3,7 +3,7 @@
 #define BOOST_TEST_MAIN
 #include "mahony_complimentary_filter.h"
 #include "test_util.h"
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <cmath>
 #include <random>
 #include <iostream>

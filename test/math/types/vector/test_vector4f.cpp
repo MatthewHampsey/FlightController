@@ -4,7 +4,7 @@
 #include "test_util.h"
 #include "vector4f.h"
 #include <boost/test/floating_point_comparison.hpp>
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <cmath>
 
 BOOST_AUTO_TEST_CASE(test_vector4f_empty_construction)

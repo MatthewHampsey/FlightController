@@ -1,0 +1,49 @@
+Build started at 2019-05-17T20:21:50.780862
+Python binary: /usr/bin/python3
+Python system: Linux
+The Meson build system
+Version: 0.29.0
+Source dir: /home/matthew/FrameDrag
+Build dir: /home/matthew/FrameDrag/arm
+Build type: cross build
+Host machine cpu family: x86
+Host machine cpu: i5-4210U
+Target machine cpu family: arm
+Target machine cpu: M3
+Build machine cpu family: x86_64
+Build machine cpu: x86_64
+Project name: FrameDrag
+Sanity check compiler command line: c++ /home/matthew/FrameDrag/arm/meson-private/sanitycheckcpp.cc -o /home/matthew/FrameDrag/arm/meson-private/sanitycheckcpp
+Sanity check compile stdout:
+
+-----
+Sanity check compile stderr:
+
+-----
+Sanity check compiler command line: /usr/bin/arm-linux-gnueabihf-g++ -c /home/matthew/FrameDrag/arm/meson-private/sanitycheckcpp.cc -o /home/matthew/FrameDrag/arm/meson-private/sanitycheckcpp
+Sanity check compile stdout:
+
+-----
+Sanity check compile stderr:
+
+-----
+Native cpp compiler: c++ (gcc 5.5.0-12ubuntu1)
+Cross cpp compiler: /usr/bin/arm-linux-gnueabihf-g++ (gcc 5.4.0-6ubuntu1)
+Boost library root dir is None
+Dependency Boost () found: YES (1.58)
+Boost library root dir is None
+Dependency Boost (test) found: YES (1.58)
+Adding test "Vector test".
+Adding test "Vector test".
+Adding test "Matrix test".
+Adding test "Quaternion test".
+Adding test "Rotation matrix test".
+Adding test "Public rotation test".
+Adding test "Angular velocity conversion test".
+Adding test "Public rotation test".
+Adding test "Madgwick test".
+Adding test "Mahony test".
+Adding test "Models test".
+Adding test "Prop Controller test".
+Adding test "Controllers test".
+Build targets in project: 26

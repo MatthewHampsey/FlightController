@@ -3,7 +3,7 @@
 #define BOOST_TEST_MAIN
 #include "prop_controller.h"
 #include "test_util.h"
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <cmath>
 
 BOOST_AUTO_TEST_CASE(check_default_speeds)

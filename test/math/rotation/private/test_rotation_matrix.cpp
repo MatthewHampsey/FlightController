@@ -4,7 +4,7 @@
 #include "rotation_matrix.h"
 #include "test_util.h"
 #include <boost/test/floating_point_comparison.hpp>
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <cmath>
 
 BOOST_AUTO_TEST_CASE(test_identity_matrix)

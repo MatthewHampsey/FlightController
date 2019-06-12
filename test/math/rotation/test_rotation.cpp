@@ -4,7 +4,7 @@
 #include "euler.h"
 #include "test_util.h"
 #include <boost/test/floating_point_comparison.hpp>
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <cmath>
 
 const float forty_five_degrees = 1 / std::sqrt(2);
