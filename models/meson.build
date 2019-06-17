@@ -4,7 +4,9 @@ models_sources = ['model.h',
                   'quadcopter.h',
                   'quadcopter.cpp',
                   'prop_controller.h',
-                  'prop_controller.cpp']
+                  'prop_controller.cpp',
+                  'prop_controller_x.h',
+		  'prop_controller_x.cpp']
 
 models_lib = shared_library('models',
                              models_sources,
