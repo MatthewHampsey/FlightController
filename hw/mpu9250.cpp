@@ -19,6 +19,7 @@ MPU9250::MPU9250(const char * dev_path,
 	: _gyro_scale_bits(gyro_scale)
 	, _accel_scale_bits(acc_scale)
 {
+  _temp_buffer.resize(7);
   switch(gyro_scale)
   {
     case (GyroScale::two_hundred_and_fifty):
@@ -74,7 +75,8 @@ MPU9250::MPU9250(const char * dev_path,
   
   //set DLPF_CFG to 3: gyro BW is 41 Hz, gyro delay is 5.9ms, Fs is 1kHz
   //                   temp sensor BW is 42 Hz, delay is 4.8ms
-  writeReg(MPU9250_REG::CONFIG, {0x03});
+  writeReg(MPU9250_REG::CONFIG, {0x00});
+  //writeReg(MPU9250_REG::CONFIG, {0x03});
   
   // scale sample rate by 1/(1 + SMPLRT_DIV value) 
   writeReg(MPU9250_REG::SMPLRT_DIV, {0x04}); //divide sample rate by (4 + 1)
@@ -189,6 +191,12 @@ std::vector<char> MPU9250::readRegBytes(const char addr, size_t length){
   return recv;
 }
 
+void MPU9250::readRegBytes(const char addr, size_t length, std::vector<char>& bytes){
+  write(fd, &addr, 1);
+  read(fd, bytes.data(), length);
+}
+
+
 void MPU9250::writeReg(const char addr, const std::vector<uint8_t>& data)
 {
   char full_data[data.size() + 1] = {addr};
@@ -213,34 +221,18 @@ int16_t MPU9250::readLowHighReg(const char addr, char maskL, char maskH)
   return (int16_t)(((int16_t)high << 8) | low);
 }
 
-Vector3f MPU9250::readGyro()
-{
-  if(ioctl(fd, I2C_SLAVE, 0x68) < 0)
-  {       
-    std::string err = "Couldn't set i2c bus address 0x68 to I2C_SLAVE";
-    throw std::runtime_error(err);
-  }
-  while((readReg(MPU9250_REG::INT_STATUS) & 0x01) == 0)
-  {
-  }
-  
-  auto x = readHighLowReg(0x43, 0xFF, 0xFF);
-  auto y = readHighLowReg(0x45, 0xFF, 0xFF);
-  auto z = readHighLowReg(0x47, 0xFF, 0xFF);
-  auto vec = Vector3f{static_cast<float>(x)*_gyro_scale, 
-	  	      static_cast<float>(y)*_gyro_scale, 
-		      static_cast<float>(z)*_gyro_scale};
-  return vec;
-}
-
-
 void MPU9250::setMagBiases(const Vector3f soft_iron_bias, const Vector3f hard_iron_bias)
 {
   _soft_iron_bias = soft_iron_bias;
   _hard_iron_bias = hard_iron_bias;
 }
 
-std::pair<Vector3f, Vector3f> MPU9250::readGyroAndAcc()
+int16_t concat(char high, char low)
+{
+  return (int16_t)((high << 8) | low);
+}
+
+void MPU9250::updateGyroAndAcc()
 {
   if(ioctl(fd, I2C_SLAVE, 0x68) < 0)
   {       
@@ -250,16 +242,26 @@ std::pair<Vector3f, Vector3f> MPU9250::readGyroAndAcc()
   //data not ready
   if((readReg(MPU9250_REG::INT_STATUS) & 0x01) == 0)
   {
-    return std::make_pair(_prev_gyro, _prev_acc);
+    return; //std::make_pair(_prev_gyro, _prev_acc);
   }
-
+#if 0
   auto g_x = readHighLowReg(0x43, 0xFF, 0xFF);
   auto g_y = readHighLowReg(0x45, 0xFF, 0xFF);
   auto g_z = readHighLowReg(0x47, 0xFF, 0xFF);
   auto a_x = readHighLowReg(0x3B, 0xFF, 0xFF);
   auto a_y = readHighLowReg(0x3D, 0xFF, 0xFF);
   auto a_z = readHighLowReg(0x3F, 0xFF, 0xFF);
-  
+
+#else
+  readRegBytes(0x43, 6, _temp_buffer);
+  auto g_x = concat(_temp_buffer[0], _temp_buffer[1]);
+  auto g_y = concat(_temp_buffer[2], _temp_buffer[3]);
+  auto g_z = concat(_temp_buffer[4], _temp_buffer[5]);
+  readRegBytes(0x3B, 6, _temp_buffer);
+  auto a_x = concat(_temp_buffer[0], _temp_buffer[1]);
+  auto a_y = concat(_temp_buffer[2], _temp_buffer[3]);
+  auto a_z = concat(_temp_buffer[4], _temp_buffer[5]);
+#endif
   _prev_gyro = Vector3f{static_cast<float>(g_x)*_gyro_scale, 
 	  	      static_cast<float>(g_y)*_gyro_scale, 
 		      static_cast<float>(g_z)*_gyro_scale};
@@ -267,31 +269,32 @@ std::pair<Vector3f, Vector3f> MPU9250::readGyroAndAcc()
 
   _prev_acc -= _accel_bias;
 
-  return std::make_pair(_prev_gyro, _prev_acc);
+  //return std::make_pair(_prev_gyro, _prev_acc);
 }
 
-Vector3f MPU9250::readAcc()
+Vector3f& MPU9250::getGyro()
 {
-  if(ioctl(fd, I2C_SLAVE, 0x68) < 0)
-  {       
-    std::string err = "Couldn't set i2c bus address 0x68 to I2C_SLAVE";
-    throw std::runtime_error(err);
-  }
-  auto x = readHighLowReg(0x3B, 0xFF, 0xFF);
-  auto y = readHighLowReg(0x3D, 0xFF, 0xFF);
-  auto z = readHighLowReg(0x3F, 0xFF, 0xFF);
-  auto vec = Vector3f{(float)x*_accel_scale, (float)y*_accel_scale, (float)z*_accel_scale};
-  vec -= _accel_bias;
-  return vec;
+  return _prev_gyro;
+}
+Vector3f& MPU9250::getAcc()
+{
+  return _prev_acc;
 }
 
-Vector3f MPU9250::readMagSensorValues()
+Vector3f& MPU9250::readMagSensorValues()
 {
+#if 0
   auto x = readLowHighReg(AK8963_REG::HXL, 0xFF, 0xFF);
   auto y = readLowHighReg(AK8963_REG::HYL, 0xFF, 0xFF);
   auto z = readLowHighReg(AK8963_REG::HZL, 0xFF, 0xFF);
-  
   char overflow = readReg(AK8963_REG::ST2);
+#else
+  readRegBytes(AK8963_REG::HXL, 7, _temp_buffer);
+  auto x = concat(_temp_buffer[0], _temp_buffer[1]);
+  auto y = concat(_temp_buffer[2], _temp_buffer[3]);
+  auto z = concat(_temp_buffer[4], _temp_buffer[5]);
+  char overflow = _temp_buffer[6];
+#endif  
   if((overflow & 0b00001000) != 0x00)
   {
     std::cout << "overflowed!" << '\n';
@@ -309,7 +312,7 @@ Vector3f MPU9250::readCalibratedMag()
                   mag[2]*_soft_iron_bias[2]};
 }
 
-Vector3f MPU9250::readMag()
+Vector3f& MPU9250::readMag()
 {
   if(ioctl(fd, I2C_SLAVE, 0x0C) < 0)
   {       

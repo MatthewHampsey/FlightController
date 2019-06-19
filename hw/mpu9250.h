@@ -81,15 +81,16 @@ class MPU9250
 
   char readReg(const char addr);
   std::vector<char> readRegBytes(const char addr, size_t length);
+  void readRegBytes(const char addr, size_t length, std::vector<char>& bytes);
   void writeReg(const char addr, const std::vector<uint8_t>& data);
   int16_t readHighLowReg(const char addr, char maskH, char maskL);
   int16_t readLowHighReg(const char addr, char maskL, char maskH);
 
-  Vector3f readGyro();
-  Vector3f readAcc();
+  Vector3f& getGyro();
+  Vector3f& getAcc();
   Vector3f readCalibratedMag();
   void setMagBiases(const Vector3f soft_iron_bias, const Vector3f hard_iron_bias);
-  std::pair<Vector3f, Vector3f> readGyroAndAcc();
+  void updateGyroAndAcc();
   void calibrate();
   void calibrateAK8963();
   void waitFor(const char addr, uint8_t mask, uint8_t value);
@@ -106,11 +107,11 @@ class MPU9250
   Vector3f _prev_H;
   Vector3f _prev_gyro;
   Vector3f _prev_acc;
-
+  std::vector<char> _temp_buffer;
   Vector3f _hard_iron_bias;
   Vector3f _soft_iron_bias;
-  Vector3f readMag();
+  Vector3f& readMag();
   Vector3f readMagBlocking();
-  Vector3f readMagSensorValues();
+  Vector3f& readMagSensorValues();
 };
 }

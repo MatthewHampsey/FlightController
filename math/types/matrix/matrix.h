@@ -1,82 +1,159 @@
 #pragma once
 #include "matrix.h"
+#include "vector.h"
 #include <initializer_list>
 #include <memory>
+#include <Eigen/Dense>
 
 namespace FrameDrag {
 
-class Vector3f;
-class Vector4f;
+template <int N, int M>
+class Matrix{
+	public:
+Matrix()
+{
+  _mat = Eigen::Matrix<float, N, M>::Zero();
+}
 
-class Matrix3f {
-    struct impl;
-    struct impl_deleter {
-        void operator()(impl*) const;
-    };
+Matrix(const std::initializer_list<float>& v)
+    : _mat{ Eigen::Matrix<float, N, M>{ v.begin() }.transpose() }
+{
+}
 
-public:
-    Matrix3f();
-    Matrix3f(const std::initializer_list<float>& v);
-    Matrix3f(const Matrix3f& other);
-    Matrix3f& operator=(const Matrix3f& other);
-    Matrix3f(Matrix3f&&) = default;
-    Matrix3f& operator=(Matrix3f&&) = default;
-    Matrix3f inverse();
-    Matrix3f tranpose();
+Matrix(const Matrix& other)
+    : _mat{ other._mat}
+{
+}
 
-    Matrix3f operator-() const;
-    Matrix3f operator-(const Matrix3f& other) const;
-    Matrix3f& operator-=(const Matrix3f& other);
-    Matrix3f operator+(const Matrix3f& other) const;
-    Matrix3f& operator+=(const Matrix3f& other);
-    float& operator()(size_t i, size_t j);
-    const float& operator()(size_t i, size_t j) const;
-    friend Vector3f operator*(const Matrix3f& m, const Vector3f& v);
-    friend Matrix3f operator*(const Matrix3f& l, const Matrix3f& r);
-    friend Matrix3f operator*(float x, const Matrix3f& m);
-    friend Matrix3f operator*(const Matrix3f& m, float x);
-    friend Matrix3f operator/(const Matrix3f& m, float x);
-    friend std::ostream& operator<<(std::ostream& os, const Matrix3f& v);
+Matrix& operator=(const Matrix& other)
+{
+    _mat = other._mat;
+    return *this;
+}
 
-    Vector3f apply(const Vector3f& v);
+float& operator()(size_t i, size_t j) { return _mat(i, j); }
+const float& operator()(size_t i, size_t j) const { return _mat(i, j); }
+
+
+Matrix inverse()
+{
+    Matrix inverse_matrix;
+    inverse_matrix._mat = _mat.inverse();
+    return inverse_matrix;
+}
+
+Matrix tranpose()
+{
+    Matrix transpose_matrix;
+    transpose_matrix._mat = _mat.transpose();
+    return transpose_matrix;
+}
+
+Matrix operator-() const
+{
+    Matrix mm;
+    mm._mat = -_mat;
+    return mm;
+}
+
+Matrix operator-(const Matrix& m) const
+{
+    Matrix mm;
+    mm._mat = _mat - m._mat;
+    return mm;
+}
+
+Matrix& operator-=(const Matrix& m)
+{
+    _mat -= m._mat;
+    return *this;
+}
+
+Matrix operator+(const Matrix& m) const
+{
+    Matrix mm;
+    mm._mat = _mat + m._mat;
+    return mm;
+}
+
+Matrix& operator+=(const Matrix& m)
+{
+    _mat += m._mat;
+    return *this;
+}
+    template <int O>
+    friend Vector<O> operator*(const Matrix<O, O>& m, const Vector<O>& v);
+    template <int O, int P, int Q>
+    friend Matrix<O, Q> operator*(const Matrix<O, P>& l, const Matrix<P, Q>& r);
+    template <int O, int P>
+    friend Matrix<O, P> operator*(float x, const Matrix<O, P>& m);
+    template <int O, int P>
+    friend Matrix<O, P> operator*(const Matrix<O, P>& m, float x);
+    template <int O, int P>
+    friend Matrix<O, P> operator/(const Matrix<O, P>& m, float x);
+    template <int O, int P>
+    friend std::ostream& operator<<(std::ostream& os, const Matrix<O, P>& v);
+
+Vector<N> apply(const Vector<N>& v) { return *this * v; }
 
 private:
-    std::unique_ptr<impl, impl_deleter> _impl;
+
+    Eigen::Matrix<float, N, M> _mat;
 };
 
-// Can't template this out because of pimpl. This should be
-// refactored if/when the pimpl is replaced.
-class Matrix4f {
-    struct impl;
-    struct impl_deleter {
-        void operator()(impl*) const;
-    };
+template <int N>
+Vector<N> operator*(const Matrix<N, N>& m, const Vector<N>& v)
+{
+    Vector<N> vv;
+    vv._vec = m._mat * v._vec;
+    return vv;
+}
 
-public:
-    Matrix4f();
-    Matrix4f(const std::initializer_list<float>& v);
-    Matrix4f(const Matrix4f& other);
-    Matrix4f& operator=(const Matrix4f& other);
-    Matrix4f(Matrix4f&&) = default;
-    Matrix4f& operator=(Matrix4f&&) = default;
-    Matrix4f inverse();
-    Matrix4f transpose();
 
-    Matrix4f operator-() const;
-    Matrix4f operator-(const Matrix4f& other) const;
-    Matrix4f& operator-=(const Matrix4f& other);
-    Matrix4f operator+(const Matrix4f& other) const;
-    Matrix4f& operator+=(const Matrix4f& other);
-    float& operator()(size_t i, size_t j);
-    friend Vector4f operator*(const Matrix4f& m, const Vector4f& v);
-    friend Matrix4f operator*(const Matrix4f& l, const Matrix4f& r);
-    friend Matrix4f operator*(float x, const Matrix4f& m);
-    friend Matrix4f operator*(const Matrix4f& m, float x);
-    friend Matrix4f operator/(const Matrix4f& m, float x);
+template <int N, int M, int O>
+Matrix<N, O> operator*(const Matrix<N, M>& l, const Matrix<M, O>& r)
+{
+    Matrix<N, O> mat;
+    mat._mat = l._mat * r._mat;
+    return mat;
+}
 
-    Vector4f apply(const Vector4f& v);
+template <int N, int M>
+Matrix<N, M> operator*(float x, const Matrix<N, M>& m)
+{
+    Matrix<N, M> m2;
+    m2._mat = x * m._mat;
+    return m2;
+}
 
-private:
-    std::unique_ptr<impl, impl_deleter> _impl;
-};
+template <int N, int M>
+Matrix<N, M> operator*(const Matrix<N, M>& m, float x) { return x * m; }
+
+template<int N, int M>
+Matrix<N, M> operator/(const Matrix<N, M>& m, float x)
+{
+    Matrix<N, M> m2;
+    m2._mat = m._mat / x;
+    return m2;
+}
+
+
+template<int N, int M>
+std::ostream& operator<<(std::ostream& os, const Matrix<N, M>& m)
+{
+    for(int i = 0; i < M; i++)
+    {
+      for(int j = 0; j < N-1; j++)
+      {
+       os << m(i, j) << " ";
+      }
+      if (N > 0) os << m(i, N-1);
+      os  << '\n';
+    }
+    return os;
+}
+
+using Matrix3f = Matrix<3, 3>;
+using Matrix4f = Matrix<4, 4>;
+
 }

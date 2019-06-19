@@ -29,9 +29,10 @@ Matrix4f PropellerControllerX::constructControlToPropVelocityTransform(
 Matrix4f PropellerControllerX::constructPropVelocityToControlTransform(
     float x, float y, float k_f, float k_t) const
 {
-    return Matrix4f{ y * k_f, -y * k_f, -y * k_f, y * k_f,
-        -x * k_f, -x * k_f, x * k_f, x * k_f,
+    return Matrix4f{
         k_t, -k_t, k_t, -k_t,
+        -x * k_f, -x * k_f, x * k_f, x * k_f,
+	y * k_f, -y * k_f, -y * k_f, y * k_f,
         k_f, k_f, k_f, k_f };
 }
 

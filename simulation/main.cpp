@@ -25,11 +25,11 @@ int main()
         Vector3f drag{ (float)d(gen), (float)d(gen), (float)d(gen) };
         Vector3f target_euler;
         if (i >= 20000) {
-            target_euler = Vector3f(0.0f, 0.0f, 0.9f);
+            target_euler = Vector3f{0.0f, 0.0f, 0.9f};
         } else {
-            target_euler = Vector3f(0.0f, 0.1f, 0.4f);
+            target_euler = Vector3f{0.0f, 0.1f, 0.4f};
         }
-        Vector3f target_euler_derivatives(0.0f, 0.0f, 0.0f);
+        Vector3f target_euler_derivatives{0.0f, 0.0f, 0.0f};
         Vector3f torque = controller.getControlVector(q.eulerAngles(), q.eulerAngleDerivatives(),
             target_euler, target_euler_derivatives);
         q.step(time_delta, thrust, drag, torque);

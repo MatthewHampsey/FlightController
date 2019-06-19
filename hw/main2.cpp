@@ -14,15 +14,34 @@
 #include "prop_controller_x.h"
 #include <chrono>
 #include <boost/property_tree/json_parser.hpp>
+#include <random>
+
+inline FrameDrag::Vector3f randomVector(float max1, float max2, float max3)
+{
+	    std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+	        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+		    auto epoch = now_ms.time_since_epoch();
+		        auto value = std::chrono::duration_cast<std::chrono::nanoseconds>(epoch);
+			    unsigned int seed = value.count();
+			        std::minstd_rand0 generator (seed);
+				    std::uniform_real_distribution<float> dist(-100, 100);
+				        return FrameDrag::Vector3f{
+							    dist(generator)/100.0f*max1,
+								    	    dist(generator)/100.0f*max2,
+									    	    dist(generator)/100.0f*max3
+											        };
+};
+
+
 
 int main(){
   
   boost::property_tree::ptree pt;
   boost::property_tree::read_json("hw/config.json", pt);  
   bool debug = pt.get_child("debug").get_value<bool>();	
-  FrameDrag::MPU9250 mpu9250{"/dev/i2c-2", 
-  	FrameDrag::MPU9250::GyroScale::two_thousand,
-  	FrameDrag::MPU9250::AccelerometerScale::sixteen_g};
+  //FrameDrag::MPU9250 mpu9250{"/dev/i2c-2", 
+  //	FrameDrag::MPU9250::GyroScale::two_thousand,
+  //	FrameDrag::MPU9250::AccelerometerScale::sixteen_g};
 
   FrameDrag::Vector3f soft_iron_bias;
   unsigned int index = 0;
@@ -36,10 +55,10 @@ int main(){
   {
     hard_iron_bias[index++] = x.second.get_value<float>();
   }
-  mpu9250.setMagBiases(soft_iron_bias, hard_iron_bias);
+  //mpu9250.setMagBiases(soft_iron_bias, hard_iron_bias);
 
-  mpu9250.waitForMagMeasurement();
-  auto init_mag_m = mpu9250.readCalibratedMag();
+  //mpu9250.waitForMagMeasurement();
+  auto init_mag_m = randomVector(-2.0f, 2.0f, 10.0f);//FrameDrag::Vector3f{0.01f, 0.3f, 9.0f};//mpu9250.readCalibratedMag();
   init_mag_m[0] = std::sqrt(init_mag_m[0]*init_mag_m[0] + init_mag_m[1]*init_mag_m[1]);
   init_mag_m[1] = 0.0f;
   FrameDrag::MahonyFilter filter{
@@ -51,7 +70,7 @@ int main(){
 
   auto I = FrameDrag::Matrix3f{ 2.0f, 0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f, 0.0f, 4.0f };
   FrameDrag::PDDynamic controller(I);
-  controller.setParameters(0.85f, 1.0f);
+  controller.setParameters(0.25f, 7.0f);
 
 
 
@@ -70,18 +89,18 @@ int main(){
   //make sure to measure wall clock time, not proc time!
   auto start = std::chrono::high_resolution_clock::now();
   FrameDrag::Vector3f prev_euler = FrameDrag::Vector3f();
-  auto target_euler_angles = FrameDrag::Vector3f{0.0f, 0.0f, 0.0f};
-  auto target_euler_derivatives = FrameDrag::Vector3f{0.0f, 0.0f, 0.0f};
+  auto target_euler_angles = FrameDrag::Vector3f{};
+  auto target_euler_derivatives = FrameDrag::Vector3f{};
   FrameDrag::PropellerControllerX prop_controller(1.0f, 1.0f, 1.0f, 1.0f);//length, k_f, k_t)
   for(unsigned int i = 0; i < 10000000; i++)
   {
-    mpu9250.updateGyroAndAcc();
+    auto ga_pair = std::make_pair<FrameDrag::Vector3f, FrameDrag::Vector3f>(randomVector(3.0f, 3.10f, 10.0f), randomVector(30.0f, 90.0f, 20.0f));//mpu9250.readGyroAndAcc();
     auto finish = std::chrono::high_resolution_clock::now();
     
-    auto gyro_m = mpu9250.getGyro()*3.14159/180.0f;
+    auto gyro_m = ga_pair.first*3.14159/180.0f;
 
-    auto grav_m = -1.0f*mpu9250.getAcc();
-    auto mag_m = mpu9250.readCalibratedMag();
+    auto grav_m = -1.0f*ga_pair.second;
+    auto mag_m = randomVector(10.1f, 30.0f, 50.0f);//FrameDrag::Vector3f{1.0f, 12.3f, 30.5f};//mpu9250.readCalibratedMag();
     std::chrono::duration<double> delta_t = finish-start;
 
     float temp_mag = mag_m[0];
@@ -112,7 +131,7 @@ int main(){
     auto prop_speeds = prop_controller.getCurrentPropSpeed();
     auto now2 = std::chrono::high_resolution_clock::now();
     auto time_diff = now2 - start;
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_diff);
+    auto ms = std::chrono::duration_cast<std::chrono::microseconds>(time_diff);
     std::cout << "total time: " << ms.count() << '\n';
     start = finish;
     prev_euler = euler;
@@ -124,8 +143,6 @@ int main(){
     //auto axis = vec/vec.norm();
     if(debug){
       std::cout << "euler angles: " << euler << '\n';
-      std::cout << "torque: " << torque << '\n';
-      std::cout << "prop speeds: " << prop_speeds << '\n';
     }
   }
   

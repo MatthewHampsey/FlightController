@@ -1,0 +1,10 @@
+scp arm/hw/test_hw debian@192.168.7.2:~
+scp arm/controllers/libcontroller.so debian@192.168.7.2:~
+scp arm/math/libmath.so debian@192.168.7.2:~
+scp arm/math/rotation/librotation.so debian@192.168.7.2:~
+scp arm/math/types/libtypes.so debian@192.168.7.2:~
+scp arm/math/types/matrix/libmatrix.so debian@192.168.7.2:~
+scp arm/math/types/vector/libvector.so debian@192.168.7.2:~
+scp arm/math/types/quaternion/libquaternion.so debian@192.168.7.2:~
+scp arm/models/libmodels.so debian@192.168.7.2:~
+scp arm/models/sensors/libsensors.so debian@192.168.7.2:~

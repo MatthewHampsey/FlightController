@@ -73,10 +73,10 @@ BOOST_AUTO_TEST_CASE(filter_marg_measurements)
             magn_m,
             delta_t);
     }
-    TEST_CHECK_FLOAT_VALUE(filter.estimate().re(), actual_ori.re(), 0.005f);
-    TEST_CHECK_FLOAT_VALUE(filter.estimate().im()[0], actual_ori.im()[0], 0.005f);
-    TEST_CHECK_FLOAT_VALUE(filter.estimate().im()[1], actual_ori.im()[1], 0.005f);
-    TEST_CHECK_FLOAT_VALUE(filter.estimate().im()[2], actual_ori.im()[2], 0.005f);
+    TEST_CHECK_FLOAT_VALUE(filter.estimate().re(), actual_ori.re(), 0.01f);
+    TEST_CHECK_FLOAT_VALUE(filter.estimate().im()[0], actual_ori.im()[0], 0.01f);
+    TEST_CHECK_FLOAT_VALUE(filter.estimate().im()[1], actual_ori.im()[1], 0.01f);
+    TEST_CHECK_FLOAT_VALUE(filter.estimate().im()[2], actual_ori.im()[2], 0.01f);
 }
 
 BOOST_AUTO_TEST_CASE(filter_imu_measurements)
