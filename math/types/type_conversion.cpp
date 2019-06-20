@@ -37,9 +37,9 @@ Quaternion ZYXEulerToQuaternion(const Vector3f& v)
     //             [cos(yaw/2)*sin(pitch/2) ][           ]   [cos(yaw/2)*sin(pitch/2)*cos(roll/2) + sin(yaw/2)*cos(pitch/2)*sin(roll/2)]
     //             [sin(yaw/2)*cos(pitch/2) ][           ]   [sin(yaw/2)*cos(pitch/2)*cos(roll/2) - cos(yaw/2)*sin(pitch/2)*sin(roll/2)]
     //
-    const auto y2 = v[0] / 2.0f;
+    const auto y2 = v[2] / 2.0f;
     const auto p2 = v[1] / 2.0f;
-    const auto r2 = v[2] / 2.0f;
+    const auto r2 = v[0] / 2.0f;
     const auto cosy2 = std::cos(y2);
     const auto siny2 = std::sin(y2);
     const auto cosp2 = std::cos(p2);
@@ -60,7 +60,7 @@ Vector3f QuaternionToZYXEuler(const Quaternion& q)
   Vector3f euler;
   float sinr_cosp = +2.0 * (re * v[0] + v[1] * v[2]);
   float cosr_cosp = +1.0 - 2.0 * (v[0] * v[0] + v[1] * v[1]);
-  euler[2] = atan2(sinr_cosp, cosr_cosp);
+  euler[0] = atan2(sinr_cosp, cosr_cosp);
 
   // pitch (y-axis rotation)
   float sinp = +2.0 * (re * v[1] - v[2] * v[0]);
@@ -70,7 +70,7 @@ Vector3f QuaternionToZYXEuler(const Quaternion& q)
   // yaw (z-axis rotation)
   float siny_cosp = +2.0 * (re * v[2] + v[0] * v[1]);
   float cosy_cosp = +1.0 - 2.0 * (v[1] * v[1] + v[2] * v[2]);  
-  euler[0] = atan2(siny_cosp, cosy_cosp);
+  euler[2] = atan2(siny_cosp, cosy_cosp);
 
   return euler;
 }

@@ -101,7 +101,7 @@ int main(){
 	//	 //0.005f);
 	//	 delta_t);
 
-    
+    //filter quaternion holds body orientation relative to world frame
     auto euler = QuaternionToZYXEuler(filter.estimate());
     auto euler_deriv = (euler - prev_euler)/delta_t.count();
     
