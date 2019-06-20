@@ -73,7 +73,7 @@ namespace {
     }
 }
 
-Rotation ZYXEulerToRotationMatrix(float yaw, float pitch, float roll)
+Rotation ZYXEulerToRotationMatrix(float roll, float pitch, float yaw)
 {
     // yaw mat:   [  cos  -sin  0    ]
     //           [ sin   cos   0    ]
@@ -105,7 +105,7 @@ Rotation ZYXEulerToRotationMatrix(float yaw, float pitch, float roll)
         cosp * cosr });
 }
 
-Rotation ZYXEulerToRotationQuaternion(float yaw, float pitch, float roll)
+Rotation ZYXEulerToRotationQuaternion(float roll, float pitch, float yaw)
 {
     // yaw quat:   [cos(yaw/2)]
     //            [          ]

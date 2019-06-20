@@ -28,7 +28,7 @@ void Quadcopter::step(float time_delta, float target_thrust,
 {
     Vector3f gravity{ 0.0f, 0.0f, -_mass * 9.81f };
     auto _bodyframe_to_world = ZYXEulerToRotationMatrix(
-        _euler_angles[2], _euler_angles[1], _euler_angles[0]);
+       _euler_angles[0], _euler_angles[1], _euler_angles[2]);
 
     _prop_controller.applyControlTargets(target_thrust, target_torque);
     auto thrust = _prop_controller.getCurrentThrust();
