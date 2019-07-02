@@ -6,10 +6,12 @@
 #include <sys/ioctl.h>
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
+#include <linux/spi/spidev.h>
 #include <iostream>
 #include <exception>
 #include <limits>
 #include <bitset>
+#include <chrono>
 
 namespace FrameDrag{
 
@@ -19,7 +21,7 @@ MPU9250::MPU9250(const char * dev_path,
 	: _gyro_scale_bits(gyro_scale)
 	, _accel_scale_bits(acc_scale)
 {
-  _temp_buffer.resize(7);
+  _temp_buffer.resize(8);
   switch(gyro_scale)
   {
     case (GyroScale::two_hundred_and_fifty):
@@ -54,17 +56,33 @@ MPU9250::MPU9250(const char * dev_path,
     std::string err = "Couldn't open " + std::string(dev_path);
     throw std::runtime_error(err);
   }
+  //wait for 100 ms for startup according to datasheet
+  usleep(100000);
+  
+  //SPI mode should 0, so that data out changes on falling edge and data in latches on rising edge
+  uint8_t mode = 0; 
 
-  if(ioctl(fd, I2C_SLAVE, 0x68) < 0)
-  {       
-    std::string err = "Couldn't set " + std::string(dev_path) + " bus address 0x68 to I2C_SLAVE";
-    throw std::runtime_error(err);
+  if(ioctl(fd, SPI_IOC_WR_MODE, &mode))
+  {
+    std::cerr << "Failed to set spi mode" << '\n';
   }
+
+  if(ioctl(fd, SPI_IOC_RD_MODE, &mode) < 0)
+  {
+    std::cerr << "Failed to read spi mode" << '\n';
+  }
+
+  writeReg(MPU9250_REG::USER_CTRL, {0b00110000});
 
   char whoami = readReg(0x75);
   if(whoami != 0x71){
     throw std::runtime_error("whoami check failed");
   }
+  auto whoami_res = readRegBytes(0x75, 1);
+  if(whoami_res[0] != 0x71){
+    throw std::runtime_error("whoami check 2 failed");
+  }
+
   calibrate();
   //clear sleep bit, set to use 20 MHz internal oscillator
   writeReg(MPU9250_REG::PWR_MGMT_1, {0x00});
@@ -75,8 +93,8 @@ MPU9250::MPU9250(const char * dev_path,
   
   //set DLPF_CFG to 3: gyro BW is 41 Hz, gyro delay is 5.9ms, Fs is 1kHz
   //                   temp sensor BW is 42 Hz, delay is 4.8ms
-  writeReg(MPU9250_REG::CONFIG, {0x00});
-  //writeReg(MPU9250_REG::CONFIG, {0x03});
+  //writeReg(MPU9250_REG::CONFIG, {0x00});
+  writeReg(MPU9250_REG::CONFIG, {0x03});
   
   // scale sample rate by 1/(1 + SMPLRT_DIV value) 
   writeReg(MPU9250_REG::SMPLRT_DIV, {0x04}); //divide sample rate by (4 + 1)
@@ -110,26 +128,26 @@ MPU9250::MPU9250(const char * dev_path,
   writeReg(MPU9250_REG::INT_ENABLE, {0x01}); 
   
   //configure magnetometer as slave
-  if(ioctl(fd, I2C_SLAVE, 0x0C) < 0)
-  {       
-    std::string err = "Couldn't set " + std::string(dev_path) + " bus address 0x0C to I2C_SLAVE";
-    throw std::runtime_error(err);
-  }
+  writeReg(MPU9250_REG::USER_CTRL, {0b00110000});
+  writeReg(MPU9250_REG::I2C_MST_CTRL, {0x19});
 
-  auto mag_whoami = readReg(AK8963_REG::WIA);
+  resetMag();
+
+  auto mag_whoami = readMagReg(AK8963_REG::WIA);
   if(mag_whoami != 0x48)
   {
     throw std::runtime_error("mag whoami check failed");
   }
 
   //power down mag
-  writeReg(AK8963_REG::CNTL1, {0x00});
+  writeMagReg(AK8963_REG::CNTL1, {0x00});
+  usleep(1000);
   //enter Fuse ROM access mode
-  writeReg(AK8963_REG::CNTL1, {0x0F});
+  writeMagReg(AK8963_REG::CNTL1, {0x0F});
   
-  auto asax = readReg(AK8963_REG::ASAX);
-  auto asay = readReg(AK8963_REG::ASAY);
-  auto asaz = readReg(AK8963_REG::ASAZ);
+  auto asax = readMagReg(AK8963_REG::ASAX);
+  auto asay = readMagReg(AK8963_REG::ASAY);
+  auto asaz = readMagReg(AK8963_REG::ASAZ);
   
   //16-bit twos complement measurement so measurements are scaled by 4912/32760 microTeslas (check datasheet)
   float scale_factor = 4912.0f/32760.0f;
@@ -139,19 +157,14 @@ MPU9250::MPU9250(const char * dev_path,
   _H_scale[2] = scale_factor*(float)(asaz-128)/256.0f + 1.0f;
   
   //have to return to power down before switching to continuous read mode, check data sheet.
-  writeReg(AK8963_REG::CNTL1, {0x00});
-
+  writeMagReg(AK8963_REG::CNTL1, {0x00});
+  usleep(1000);
   //continuous mode 1 0010 8Hz measurement
   //continuous mode 2 0110 100Hz measurement
   //bit 4: 0 for 14-bit output, 1 for 16-bit output
-  writeReg(AK8963_REG::CNTL1, {0b00010110}); //set to 16-bit output, mode 2
- // calibrateAK8963();
-  if(ioctl(fd, I2C_SLAVE, 0x68) < 0)
-  {       
-    std::string err = "Couldn't set " + std::string(dev_path) + " bus address 0x68 to I2C_SLAVE";
-    throw std::runtime_error(err);
-  }
-
+  writeMagReg(AK8963_REG::CNTL1, {0b00010110}); //set to 16-bit output, mode 2
+  enableMagI2CSlave();
+//  calibrateAK8963();
 }
 
 MPU9250::~MPU9250()
@@ -162,48 +175,169 @@ MPU9250::~MPU9250()
   }
 }
 
-char MPU9250::readReg(const char addr){
 
-  if(write(fd, &addr, 1) < 0){
-    std::cerr << "failed to write" << '\n';
-    throw std::runtime_error("failed write");
+void MPU9250::enableMagI2CSlave()
+{
+  writeReg(MPU9250_REG::I2C_SLV0_CTRL, {0x00}); //disable slave
+  writeReg(MPU9250_REG::I2C_SLV0_ADDR, {128 | 0x0C});
+  writeReg(MPU9250_REG::I2C_SLV0_REG, {AK8963_REG::INFO});
+  //set continuous read?
+  writeReg(MPU9250_REG::I2C_SLV0_CTRL, {0x80 | 10}); //enable reading from slave | read 10 bytes
+}
+
+char MPU9250::readMagReg(const uint8_t addr){
+
+  //mag address is 0x0C
+
+  writeReg(MPU9250_REG::I2C_SLV4_ADDR, {0x80 | 0x0C});
+  writeReg(MPU9250_REG::I2C_SLV4_REG, {addr});
+  writeReg(MPU9250_REG::I2C_SLV4_CTRL, {0x80 | 0x01}); //enable reading from slave | read 1 byte
+
+  char master_status = 0x00;
+  auto begin = std::chrono::high_resolution_clock::now();
+  auto timeout = std::chrono::milliseconds(5);
+  while(((master_status = readReg(MPU9250_REG::I2C_MST_STATUS)) & 0x40) == 0)
+  {
+    auto duration = std::chrono::high_resolution_clock::now() - begin;
+    if(duration >= timeout)
+    {
+      throw std::runtime_error("ReadMagReg - transfer ack timed out");
+    }
+
   }
-  char recv;
-  if(read(fd, &recv, 1) < 0){
-    std::cerr << "failed to read" << '\n';
-    throw std::runtime_error("failed read");
+  if(master_status & 0x10)
+  {
+    throw std::runtime_error("SLV4 NACK asserted");
   }
-  return recv;
+  
+  return readReg(MPU9250_REG::I2C_SLV4_DI);
+}
+
+void MPU9250::writeMagReg(const uint8_t addr, const std::vector<uint8_t>& data)
+{
+  //mag address is 0x0C
+
+  //might need to move this line to later
+  writeReg(MPU9250_REG::I2C_SLV4_ADDR, {0x0C});
+  writeReg(MPU9250_REG::I2C_SLV4_REG, {addr});
+  writeReg(MPU9250_REG::I2C_SLV4_DO, data);
+  writeReg(MPU9250_REG::I2C_SLV4_CTRL, {0x80 | 0x01}); //enable reading from slave | read 1 byte
+
+  //add timeout here 
+  char master_status = 0x00;
+  auto begin = std::chrono::high_resolution_clock::now();
+  auto timeout = std::chrono::milliseconds(5);
+  while(((master_status = readReg(MPU9250_REG::I2C_MST_STATUS)) & 0x40) == 0)
+  {
+    auto duration = std::chrono::high_resolution_clock::now() - begin;
+    if(duration >= timeout)
+    {
+      throw std::runtime_error("WriteMagReg - transfer ack timed out");
+    }
+  }
+  if(master_status & 0x10)
+  {
+    throw std::runtime_error("WriteMagReg - SLV4 NACK asserted");
+  }
+  
+  return;
+}
+
+void MPU9250::resetMag()
+{
+  writeMagReg(AK8963_REG::CNTL2, {0x01});
+}
+
+char MPU9250::readReg(const uint8_t addr){
+  uint8_t tx[2] = {static_cast<uint8_t>(addr | 128), 129};
+  uint8_t rx[2] = {0, 0};
+  
+  struct spi_ioc_transfer tr = {0};
+  tr.tx_buf = (unsigned long)tx;
+  tr.rx_buf = (unsigned long)rx;
+  tr.len = 2;
+  tr.delay_usecs = 0;
+  tr.speed_hz = 1000000;
+  tr.bits_per_word = 8;
+  auto ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+
+  if(ret < 1)
+  {
+    perror("err:");
+    throw std::runtime_error("SPI message transfer failed");
+  }
+
+  return rx[1];
 }
 
 std::vector<char> MPU9250::readRegBytes(const char addr, size_t length){
 
-  if(write(fd, &addr, 1) < 0){
-    std::cerr << "failed to write" << '\n';
-    
-    //throw std::runtime_error("failed write");
+  size_t read_length = length + 1;
+  std::vector<uint8_t> tx(read_length, 129);
+  tx[0] = addr | 128;
+
+  std::vector<uint8_t> rx(read_length, 0);
+  
+  struct spi_ioc_transfer tr = {0};
+  tr.tx_buf = (unsigned long)tx.data();
+  tr.rx_buf = (unsigned long)rx.data();
+  tr.len = length + 1;
+  tr.delay_usecs = 0;
+  tr.speed_hz = 1000000;
+  tr.bits_per_word = 8;
+  auto ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+
+  if(ret < 1)
+  {
+    perror("err:");
+    throw std::runtime_error("SPI message transfer failed");
   }
-  std::vector<char> recv(length, 0);
-  if(read(fd, recv.data(), length) < 0){
-    std::cerr << "failed to read" << '\n';
-    //throw std::runtime_error("failed read");
-  }
-  return recv;
+
+  return std::vector<char>(rx.begin()+1, rx.end());
 }
 
-void MPU9250::readRegBytes(const char addr, size_t length, std::vector<char>& bytes){
-  if(write(fd, &addr, 1) < 0) std::cerr << "Failed to write address" << '\n';
-  if(read(fd, bytes.data(), length) < 0) std::cerr << "Failed to read multiple bytes" << '\n';
+
+void MPU9250::readRegBytes(const uint8_t addr, size_t length, std::vector<char>& bytes){
+  size_t read_length = length + 1;
+  std::vector<uint8_t> tx(read_length, 129);
+  tx[0] = addr | 128;
+
+  std::vector<uint8_t> rx(read_length, 0);
+
+  struct spi_ioc_transfer tr = {0};
+  tr.tx_buf = (unsigned long)tx.data();
+  tr.rx_buf = (unsigned long)rx.data();
+  tr.len = length + 1;
+  tr.delay_usecs = 0;
+  tr.speed_hz = 1000000;
+  tr.bits_per_word = 8;
+  auto ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+
+  if(ret < 1)
+  {
+    perror("err:");
+    throw std::runtime_error("SPI message transfer failed");
+  }
+  std::copy(rx.begin() + 1, rx.end(), bytes.begin());
 }
 
 
-void MPU9250::writeReg(const char addr, const std::vector<uint8_t>& data)
+void MPU9250::writeReg(const uint8_t addr, const std::vector<uint8_t>& data)
 {
-  char full_data[data.size() + 1] = {addr};
-  std::copy(data.begin(), data.end(), full_data + 1);
-  if(write(fd, full_data, data.size() + 1) < 0){
-    std::cerr << "failed to write" << '\n';
-    throw std::runtime_error("failed write");
+  std::vector<uint8_t> tx{addr};
+  tx.insert(tx.end(), data.begin(), data.end());
+  uint8_t rx[10] = {0};
+  struct spi_ioc_transfer tr = {};
+  tr.tx_buf = (unsigned long)tx.data();
+  tr.rx_buf = (unsigned long)rx;
+  tr.len = tx.size();
+  tr.delay_usecs = 0;
+  tr.speed_hz = 1000000;
+  tr.bits_per_word = 8;
+  auto ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+  if(ret < 1)
+  {
+    throw std::runtime_error("SPI message transfer failed");
   }
 }
 
@@ -232,46 +366,6 @@ int16_t concat(char high, char low)
   return (int16_t)((high << 8) | low);
 }
 
-void MPU9250::updateGyroAndAcc()
-{
-  if(ioctl(fd, I2C_SLAVE, 0x68) < 0)
-  {       
-    std::string err = "Couldn't set i2c bus address 0x68 to I2C_SLAVE";
-    throw std::runtime_error(err);
-  }
-  //data not ready
-  if((readReg(MPU9250_REG::INT_STATUS) & 0x01) == 0)
-  {
-    return; //std::make_pair(_prev_gyro, _prev_acc);
-  }
-#if 0
-  auto g_x = readHighLowReg(0x43, 0xFF, 0xFF);
-  auto g_y = readHighLowReg(0x45, 0xFF, 0xFF);
-  auto g_z = readHighLowReg(0x47, 0xFF, 0xFF);
-  auto a_x = readHighLowReg(0x3B, 0xFF, 0xFF);
-  auto a_y = readHighLowReg(0x3D, 0xFF, 0xFF);
-  auto a_z = readHighLowReg(0x3F, 0xFF, 0xFF);
-
-#else
-  readRegBytes(0x43, 6, _temp_buffer);
-  auto g_x = concat(_temp_buffer[0], _temp_buffer[1]);
-  auto g_y = concat(_temp_buffer[2], _temp_buffer[3]);
-  auto g_z = concat(_temp_buffer[4], _temp_buffer[5]);
-  readRegBytes(0x3B, 6, _temp_buffer);
-  auto a_x = concat(_temp_buffer[0], _temp_buffer[1]);
-  auto a_y = concat(_temp_buffer[2], _temp_buffer[3]);
-  auto a_z = concat(_temp_buffer[4], _temp_buffer[5]);
-#endif
-  _prev_gyro = Vector3f{static_cast<float>(g_x)*_gyro_scale, 
-	  	      static_cast<float>(g_y)*_gyro_scale, 
-		      static_cast<float>(g_z)*_gyro_scale};
-  _prev_acc = Vector3f{(float)a_x*_accel_scale, (float)a_y*_accel_scale, (float)a_z*_accel_scale};
-
-  _prev_acc -= _accel_bias;
-
-  //return std::make_pair(_prev_gyro, _prev_acc);
-}
-
 Vector3f& MPU9250::getGyro()
 {
   return _prev_gyro;
@@ -280,64 +374,81 @@ Vector3f& MPU9250::getAcc()
 {
   return _prev_acc;
 }
-
-Vector3f& MPU9250::readMagSensorValues()
+Vector3f& MPU9250::getMag()
 {
-#if 0
-  auto x = readLowHighReg(AK8963_REG::HXL, 0xFF, 0xFF);
-  auto y = readLowHighReg(AK8963_REG::HYL, 0xFF, 0xFF);
-  auto z = readLowHighReg(AK8963_REG::HZL, 0xFF, 0xFF);
-  char overflow = readReg(AK8963_REG::ST2);
-#else
-  readRegBytes(AK8963_REG::HXL, 7, _temp_buffer);
-  auto x = concat(_temp_buffer[0], _temp_buffer[1]);
-  auto y = concat(_temp_buffer[2], _temp_buffer[3]);
-  auto z = concat(_temp_buffer[4], _temp_buffer[5]);
-  char overflow = _temp_buffer[6];
-#endif  
-  if((overflow & 0b00001000) != 0x00)
-  {
-    std::cout << "overflowed!" << '\n';
-    return _prev_H;
-  }
-  _prev_H = Vector3f{(float)x*_H_scale[0], (float)y*_H_scale[1], (float)z*_H_scale[0]};
   return _prev_H;
 }
 
-Vector3f MPU9250::readCalibratedMag()
+bool MPU9250::readMagSensorValues(Vector3f& mag)
 {
-  auto mag = readMag() - _hard_iron_bias;
-  return Vector3f{mag[0]*_soft_iron_bias[0],
-                  mag[1]*_soft_iron_bias[1],
-                  mag[2]*_soft_iron_bias[2]};
+  auto data = readRegBytes(MPU9250_REG::EXT_SENS_DATA_00, 10);
+  //acc at 1-6
+  //gyro at 9-14
+  //mag data starts at 15, from INFO
+  //check mag st1 and overflow
+  if((data[1] & 0x01) && !(data[8] & 0b00001000))
+  {
+    //mag is low - high
+    auto x = concat(data[3], data[2]);
+    auto y = concat(data[5], data[4]);
+    auto z = concat(data[7], data[6]);
+    mag = Vector3f{(float)x*_H_scale[0], (float)y*_H_scale[1], (float)z*_H_scale[2]};
+    return true;
+  }
+  return false;
 }
 
-Vector3f& MPU9250::readMag()
+void MPU9250::updateGyroAccAndMag(bool& updated_gyro_acc, bool& updated_mag)
 {
-  if(ioctl(fd, I2C_SLAVE, 0x0C) < 0)
-  {       
-    std::string err = "Couldn't set i2c bus address 0x0C to I2C_SLAVE";
-    throw std::runtime_error(err);
-  }
-  
-  if((readReg(AK8963_REG::ST1) & 0x01) != 0x01)
+  std::vector<char> data(24, 0);
+  readRegBytes(MPU9250_REG::INT_STATUS, 24, data);
+  //acc at 1-6
+  //gyro at 9-14
+  //mag data starts at 15, from INFO
+
+  //check gyro and mag data is ready
+  updated_gyro_acc = false;
+  updated_mag = false;
+  if(data[0] & 0x01)
   {
-    return _prev_H;
+    auto a_x = concat(data[1], data[2]);
+    auto a_y = concat(data[3], data[4]);
+    auto a_z = concat(data[5], data[6]);
+    auto g_x = concat(data[9], data[10]);
+    auto g_y = concat(data[11], data[12]);
+    auto g_z = concat(data[13], data[14]);
+    _prev_gyro = Vector3f{static_cast<float>(g_x)*_gyro_scale, 
+	  	      static_cast<float>(g_y)*_gyro_scale, 
+		      static_cast<float>(g_z)*_gyro_scale};
+    _prev_acc = Vector3f{(float)a_x*_accel_scale, (float)a_y*_accel_scale, (float)a_z*_accel_scale};
+
+    _prev_acc -= _accel_bias;
+    updated_gyro_acc = true;
   }
-  return readMagSensorValues();
+  //check mag st1 and overflow
+  if((data[16] & 0x01) && !(data[23] & 0b00001000))
+  {
+    //mag is low - high
+    auto x = concat(data[18], data[17]);
+    auto y = concat(data[20], data[19]);
+    auto z = concat(data[22], data[21]);
+    auto H_vec = Vector3f{(float)x*_H_scale[0], (float)y*_H_scale[1], (float)z*_H_scale[2]};
+    
+
+    auto mag = H_vec - _hard_iron_bias;
+    _prev_H = Vector3f{mag[0]*_soft_iron_bias[0],
+                       mag[1]*_soft_iron_bias[1],
+                       mag[2]*_soft_iron_bias[2]};
+    updated_mag = true;
+  }
 }
 
 Vector3f MPU9250::readMagBlocking()
 {
-  if(ioctl(fd, I2C_SLAVE, 0x0C) < 0)
-  {       
-    std::string err = "Couldn't set i2c bus address 0x0C to I2C_SLAVE";
-    throw std::runtime_error(err);
-  }
+  Vector3f result;
+  while(!(readMagSensorValues(result))){}
   
-  while((readReg(AK8963_REG::ST1) & 0x01) != 0x01){}
-
-  return readMagSensorValues();
+  return result;
 }
 
 void MPU9250::calibrate()
@@ -358,8 +469,9 @@ void MPU9250::calibrate()
   writeReg(MPU9250_REG::FIFO_EN, {0x00});      // Disable FIFO
   writeReg(MPU9250_REG::PWR_MGMT_1, {0x00});   // Turn on internal clock source
   writeReg(MPU9250_REG::I2C_MST_CTRL, {0x00}); // Disable I2C master
-  writeReg(MPU9250_REG::USER_CTRL, {0x00});    // Disable FIFO and I2C master modes
-  writeReg(MPU9250_REG::USER_CTRL, {0x0C});    // Reset FIFO and DMP
+
+  writeReg(MPU9250_REG::USER_CTRL, {0x00 | 0b00010000});    // Disable FIFO and I2C master modes
+  writeReg(MPU9250_REG::USER_CTRL, {0x0C | 0b00010000});    // Reset FIFO and DMP
   waitFor(MPU9250_REG::INT_STATUS, 0x01, 0x01);
 	       
   // Configure MPU9250 gyro and accelerometer for bias calculation
@@ -375,7 +487,7 @@ void MPU9250::calibrate()
 
   uint16_t fifo_count = readHighLowReg(MPU9250_REG::FIFO_COUNTH, 0b0001111, 0xFF);
 
-  writeReg(MPU9250_REG::USER_CTRL, {0b01000000});   // Enable FIFO  
+  writeReg(MPU9250_REG::USER_CTRL, {0b01010000});   // Enable FIFO  
   writeReg(MPU9250_REG::FIFO_EN, {0b01111000});     // Enable gyro and accelerometer sensors for FIFO (max size 512 bytes in MPU-9250)
   usleep(40000); // accumulate 40 samples in 80 milliseconds = 480 bytes
 
@@ -407,7 +519,8 @@ void MPU9250::calibrate()
   gyro_bias[0] /= (int32_t) packet_count;
   gyro_bias[1] /= (int32_t) packet_count;
   gyro_bias[2] /= (int32_t) packet_count;
-    
+   
+
   if(_accel_bias[2] > 0L) {_accel_bias[2] -= 1.0f;} // Remove gravity from the z-axis accelerometer bias calculation
   else {_accel_bias[2] += 1.0f;}
   std::vector<uint8_t> data(6);  
@@ -434,7 +547,7 @@ void MPU9250::calibrateAK8963()
   Vector3f min_mag = {std::numeric_limits<float>::max(),
 	              std::numeric_limits<float>::max(),
 		      std::numeric_limits<float>::max()};
-  for(unsigned int i = 0; i < 3000; i++)
+  for(unsigned int i = 0; i < 10000; i++)
   {
     auto val = readMagBlocking();
     max_mag[0] = std::max(max_mag[0], val[0]);
@@ -452,31 +565,13 @@ void MPU9250::calibrateAK8963()
   _soft_iron_bias[0] = average_elliptical_length/length_diff[0];
   _soft_iron_bias[1] = average_elliptical_length/length_diff[1];
   _soft_iron_bias[2] = average_elliptical_length/length_diff[2];
-
-  std::cout << "hard iron bias: " << _hard_iron_bias << '\n';
-  std::cout << "soft iron bias: " << _soft_iron_bias << '\n';
 }
 
 void MPU9250::waitFor(const char addr, uint8_t mask, uint8_t value)
 {
-  if(ioctl(fd, I2C_SLAVE, 0x68) < 0)
-  {       
-    std::string err = "Couldn't set i2c bus address 0x68 to I2C_SLAVE";
-    throw std::runtime_error(err);
-  }
   while((readReg(addr) & mask) != value)
   {
   }
-}
-
-void MPU9250::waitForMagMeasurement()
-{
-  if(ioctl(fd, I2C_SLAVE, 0x0C) < 0)
-  {       
-    std::string err = "Couldn't set i2c bus address 0x68 to I2C_SLAVE";
-    throw std::runtime_error(err);
-  }
-  while((readReg(AK8963_REG::ST1) & 0x01) != 0x01){}
 }
 
 }

@@ -1,0 +1,17 @@
+VDDIO          -       - spi clock
+SPI data out   -  TOP  - SPI data input (SDI)
+Chip select    -   x   - VDD
+Interrupt out  -       - GND
+
+
+
+
+P9_17: SPI0_CS0
+P9_21: SPI0_D0
+P9_18: SPI0_D1    <- master out
+P9_22: SPI0_SCLK
+
+P9_28: SPI1_CS0
+P9_29: SPI1_D0
+P9_30: SPI1_D1
+P9_31: SPI1_SCLK
