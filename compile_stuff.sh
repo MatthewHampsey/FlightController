@@ -1,0 +1,3 @@
+cd arm
+ninja
+cd ..
