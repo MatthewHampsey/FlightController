@@ -1,6 +1,8 @@
 controller_sources = ['dynamic_compensation_qc.cpp',
                     'dynamic_compensation_qc.h',
-                    'quadcopter_controller.h']
+                    'quadcopter_controller.h',
+                    'quat_control.h',
+                    'quat_control.cpp']
 
 controller_lib = shared_library('controller',
                                controller_sources,
