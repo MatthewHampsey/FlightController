@@ -1,4 +1,5 @@
 #include "vector3f.h"
+#include <iostream>
 #include <Eigen/Dense>
 
 namespace FrameDrag {
