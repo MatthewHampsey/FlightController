@@ -29,7 +29,7 @@ int main() {
   q.setPosition(Vector3f{0.0f, 0.0f, 30.0f});
   q.setEulerAngles(Vector3f{0.1f, 0.0f, 0.0f});
   QuaternionController controller{q.momentOfInertia()};
-  // controller.setTimeConstant(10.0f);
+  controller.setParameters(1.0f, 1.0f);
   std::random_device rd{};
   std::mt19937 gen{rd()};
   std::normal_distribution<> d{0, 1.0};
