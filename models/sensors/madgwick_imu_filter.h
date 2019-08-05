@@ -10,13 +10,10 @@ class MadgwickIMUFilter {
 
 public:
     MadgwickIMUFilter();
-    MadgwickIMUFilter(const Quaternion& q,
-        float beta);
-    MadgwickIMUFilter(Quaternion&& q,
-        float beta);
+    MadgwickIMUFilter(const Quaternion& q, float beta);
+    MadgwickIMUFilter(Quaternion&& q, float beta);
 
-    void update(const Vector3f& gyro_m,
-        const Vector3f& accel_m,
+    void update(const Vector3f& gyro_m, const Vector3f& accel_m,
         float time_delta);
 
     Quaternion& estimate();

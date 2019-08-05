@@ -8,7 +8,6 @@ namespace FrameDrag {
 Vector3f QuaternionToBodyFrameAngularVelocity(const Quaternion& q,
     const Quaternion& q_derivative);
 
-Quaternion
-BodyFrameAngularVelocityToQuaternionDerivative(const Quaternion& q,
-    const Vector3f& angular_velocity);
+Quaternion BodyFrameAngularVelocityToQuaternionDerivative(
+    const Quaternion& q, const Vector3f& angular_velocity);
 }
