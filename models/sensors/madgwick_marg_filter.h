@@ -10,17 +10,12 @@ class MadgwickMARGFilter {
 
 public:
     MadgwickMARGFilter();
-    MadgwickMARGFilter(const Quaternion& q,
-        float beta,
+    MadgwickMARGFilter(const Quaternion& q, float beta,
         float bias_convergence_rate);
-    MadgwickMARGFilter(Quaternion&& q,
-        float beta,
-        float bias_convergence_rate);
+    MadgwickMARGFilter(Quaternion&& q, float beta, float bias_convergence_rate);
 
-    void update(const Vector3f& gyro_m,
-        const Vector3f& accel_m,
-        const Vector3f& magnet_m,
-        float time_delta);
+    void update(const Vector3f& gyro_m, const Vector3f& accel_m,
+        const Vector3f& magnet_m, float time_delta);
 
     Quaternion& estimate();
 

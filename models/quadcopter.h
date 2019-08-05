@@ -39,8 +39,6 @@ private:
     Vector3f _velocity{ 0.0f, 0.0f, 0.0f };
     Vector3f _euler_angles{ 0.0f, 0.0f, 0.0f };
     Vector3f _euler_derivatives{ 0.0f, 0.0f, 0.0f };
-    Matrix3f _I{ 1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 2.0f };
+    Matrix3f _I{ 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 2.0f };
 };
 }
