@@ -16,7 +16,7 @@ Matrix()
 }
 
 Matrix(const std::initializer_list<float>& v)
-    : _mat{ Eigen::Matrix<float, N, M>{ v.begin() }.transpose() }
+  :_mat{Eigen::Matrix<float, M, N>{v.begin()}.transpose()}
 {
 }
 
@@ -81,8 +81,8 @@ Matrix& operator+=(const Matrix& m)
     _mat += m._mat;
     return *this;
 }
-    template <int O>
-    friend Vector<O> operator*(const Matrix<O, O>& m, const Vector<O>& v);
+    template <int O, int P>
+    friend Vector<O> operator*(const Matrix<O, P>& m, const Vector<P>& v);
     template <int O, int P, int Q>
     friend Matrix<O, Q> operator*(const Matrix<O, P>& l, const Matrix<P, Q>& r);
     template <int O, int P>
@@ -101,8 +101,8 @@ private:
     Eigen::Matrix<float, N, M> _mat;
 };
 
-template <int N>
-Vector<N> operator*(const Matrix<N, N>& m, const Vector<N>& v)
+template <int N, int M>
+Vector<N> operator*(const Matrix<N, M>& m, const Vector<M>& v)
 {
     Vector<N> vv;
     vv._vec = m._mat * v._vec;
@@ -155,5 +155,5 @@ std::ostream& operator<<(std::ostream& os, const Matrix<N, M>& m)
 
 using Matrix3f = Matrix<3, 3>;
 using Matrix4f = Matrix<4, 4>;
-
+using Matrix4x3f = Matrix<4, 3>;
 }

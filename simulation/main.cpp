@@ -44,9 +44,9 @@ int main()
         Vector3f drag{ (float)d(gen), (float)d(gen), (float)d(gen) };
         Vector3f target_euler;
         if (i >= 20000) {
-            target_euler = Vector3f(0.0f, 0.0f, 0.9f);
+            target_euler = Vector3f{0.0f, 0.0f, 0.9f};
         } else {
-            target_euler = Vector3f(0.0f, 0.1f, 0.4f);
+            target_euler = Vector3f{0.0f, 0.1f, 0.4f};
         }
         auto current_quat = ZYXEulerToQuaternion(q.eulerAngles());
         auto quat_deriv = numerical_derivative(prev_quat, current_quat, time_delta);

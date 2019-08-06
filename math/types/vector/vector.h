@@ -115,8 +115,8 @@ float norm() const
     friend Vector<M> operator*(float x, const Vector<M>& v);
     template <int M>
     friend Vector<M> operator*(const Vector<M>& v, float x);
-    template <int M>
-    friend Vector<M> operator*(const Matrix<M, M>& m, const Vector<M>& v);
+    template <int M, int O>
+    friend Vector<M> operator*(const Matrix<M, O>& m, const Vector<O>& v);
     template <int M>
     friend Vector<M> operator/(const Vector<M>& v, float x);
     template <int M>

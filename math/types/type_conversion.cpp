@@ -75,6 +75,10 @@ Vector3f QuaternionToZYXEuler(const Quaternion& q)
   return euler;
 }
 
+Quaternion toQuaternion(const Vector4f& vec)
+{
+  return Quaternion{ vec[0], vec[1], vec[2], vec[3] };
+}
 
 Matrix3f vectorToSkewSymmetricMatrix(const Vector3f& v){
     return Matrix3f{0.0f, -v[2], v[1],
