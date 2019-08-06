@@ -1,0 +1,3 @@
+[submodule "pru_esc_ctrl"]
+	path = pru_esc_ctrl
+	url = https://github.com/MatthewHampsey/pru_esc_ctrl.git

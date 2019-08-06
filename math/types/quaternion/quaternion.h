@@ -25,6 +25,7 @@ public:
     friend Quaternion operator*(float x, const Quaternion& q);
     friend Quaternion operator*(const Quaternion& q, float x);
     friend Quaternion operator/(const Quaternion& q, float x);
+    friend std::ostream& operator<<(std::ostream& os, const Quaternion& v);
 
     Quaternion conjugate() const;
     Quaternion inverse() const;

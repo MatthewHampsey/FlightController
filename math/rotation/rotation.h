@@ -21,7 +21,10 @@ private:
         {
         }
         Vector3f apply(const Vector3f& other) override { return m_t.apply(other); }
-        std::unique_ptr<RotationPrivateBase> inverse() override { return std::make_unique<RotationPrivate<T> >(m_t.inverse()); }
+        std::unique_ptr<RotationPrivateBase> inverse() override
+        {
+            return std::make_unique<RotationPrivate<T> >(m_t.inverse());
+        }
     };
 
     Rotation(std::unique_ptr<RotationPrivateBase>&& t)
@@ -37,7 +40,10 @@ public:
     }
 
     template <typename T>
-    T apply(const T& v) { return _representation->apply(v); }
+    T apply(const T& v)
+    {
+        return _representation->apply(v);
+    }
 
     Rotation inverse();
 
