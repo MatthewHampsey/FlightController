@@ -2,28 +2,11 @@
 #include "euler.h"
 #include "quadcopter.h"
 #include "quat_control.h"
-
+#include "type_conversion.h"
 #include <iostream>
 #include <random>
 
 using namespace FrameDrag;
-
-FrameDrag::Quaternion ZYXEulerToQuaternion(const FrameDrag::Vector3f& v)
-{
-    const auto y2 = v[2] / 2.0f;
-    const auto p2 = v[1] / 2.0f;
-    const auto r2 = v[0] / 2.0f;
-    const auto cosy2 = std::cos(y2);
-    const auto siny2 = std::sin(y2);
-    const auto cosp2 = std::cos(p2);
-    const auto sinp2 = std::sin(p2);
-    const auto cosr2 = std::cos(r2);
-    const auto sinr2 = std::sin(r2);
-    return FrameDrag::Quaternion(cosy2 * cosp2 * cosr2 + siny2 * sinp2 * sinr2,
-        cosy2 * cosp2 * sinr2 - siny2 * sinp2 * cosr2,
-        cosy2 * sinp2 * cosr2 + siny2 * cosp2 * sinr2,
-        siny2 * cosp2 * cosr2 - cosy2 * sinp2 * sinr2);
-}
 
 int main()
 {

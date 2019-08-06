@@ -1,4 +1,4 @@
-hw_sources = ['main.cpp',
+hw_sources = ['main_quat.cpp',
 	      'mpu9250.h',
               'mpu9250_spi.cpp']
 
