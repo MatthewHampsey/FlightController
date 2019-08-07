@@ -12,6 +12,7 @@
 #include "quat_control.h"
 #include "type_conversion.h"
 #include "prop_controller_x.h"
+#include "angular_velocity_conversion.h"
 #include <chrono>
 #include <boost/property_tree/json_parser.hpp>
 #include <termios.h>
@@ -198,14 +199,15 @@ int main(){
 //  	  1.0f, 0.002f
   };
 
-  auto I = FrameDrag::Matrix3f{ 2.0f, 0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f, 0.0f, 4.0f };
+  auto I = FrameDrag::Matrix3f{ 0.1f, 0.0f, 0.0f, 0.0f, 0.1f, 0.0f, 0.0f, 0.0f, 0.2f };
   FrameDrag::QuaternionController controller(I);
-  controller.setParameters(0.85f, 1.0f);
+  controller.setParameters(0.0f, 5.0f);
 
   //make sure to measure wall clock time, not proc time!
   auto start = std::chrono::high_resolution_clock::now();
-  FrameDrag::Quaternion prev_quat = FrameDrag::Quaternion();
+  FrameDrag::Quaternion prev_quat = FrameDrag::Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
   auto target_euler_angles = FrameDrag::Vector3f{0.0f, 0.0f, 0.0f};
+  auto target_angular_velocity = FrameDrag::Vector3f{0.0f, 0.0f, 0.0f};
   FrameDrag::PropellerControllerX prop_controller(1.0f, 1.0f, 1.0f, 1.0f);//length, k_f, k_t)
   
   const char *portname = "/dev/ttyS4";
@@ -237,6 +239,9 @@ int main(){
     auto finish = std::chrono::high_resolution_clock::now();
     
     auto gyro_m = mpu9250.getGyro()*3.14159/180.0f;
+
+    std::cout << "angular velocity: " << gyro_m << '\n';
+
     auto grav_m = -1.0f*mpu9250.getAcc();
     auto mag_m = mpu9250.getMag();
     std::chrono::duration<double> delta_t = finish-start;
@@ -251,19 +256,24 @@ int main(){
 		   (mag_m/mag_m.norm())},
 		   delta_t.count());
 
+    auto new_ms = std::chrono::duration_cast<std::chrono::seconds>(delta_t);
+
+    auto new_ang_vel = FrameDrag::QuaternionAndTimeToBodyFrameAngularVelocity(prev_quat, filter.estimate(), delta_t.count()); 
+    std::cout << "new ang vel: " << new_ang_vel << '\n';
     //filter quaternion holds body orientation relative to world frame
-    auto quat_deriv = (filter.estimate() - prev_quat)/(delta_t.count());
+
     FrameDrag::Vector3f torque = controller.getControlVector(
-		            filter.estimate(), quat_deriv, ZYXEulerToQuaternion(target_euler_angles),
-			    quat_deriv);
+		            filter.estimate(), new_ang_vel, ZYXEulerToQuaternion(target_euler_angles),
+			    new_ang_vel);
+			    //target_angular_velocity);
     //prop_controller.applyControlTargets(9.81, torque);
     prop_controller.applyControlTargets(0.0, torque);
     auto prop_speeds = prop_controller.getCurrentPropSpeed();
     std::cout << "prop speeds: " << prop_speeds << '\n';    
-    for(int i = 0; i < 4; i++)
-    {
-      prop_speeds[i] = std::max(0.0f, std::min(prop_speeds[i], 1.0f));
-    }
+    //for(int i = 0; i < 4; i++)
+    //{
+    //  prop_speeds[i] = std::max(0.0f, std::min(prop_speeds[i], 1.0f));
+    //}
 
     DutyCycles duty_cycles = {
       (int)(200000/0.5*prop_speeds[0] + 200000),
@@ -272,11 +282,11 @@ int main(){
       (int)(200000/0.5*prop_speeds[3] + 200000),
       4000000
     };
-    std::cout << "duty cycles: " << '\n';
-    std::cout << duty_cycles.A << '\n';
-    std::cout << duty_cycles.B << '\n';
-    std::cout << duty_cycles.C << '\n';
-    std::cout << duty_cycles.D << '\n';
+    //std::cout << "duty cycles: " << '\n';
+    //std::cout << duty_cycles.A << '\n';
+    //std::cout << duty_cycles.B << '\n';
+    //std::cout << duty_cycles.C << '\n';
+    //std::cout << duty_cycles.D << '\n';
     *(DutyCycles*)pru = duty_cycles;
 
     auto now2 = std::chrono::high_resolution_clock::now();
@@ -291,13 +301,16 @@ int main(){
     start = finish;
     prev_quat = filter.estimate();
     i++;
-    if(debug && (i % 1000 == 0)){
+    //if(debug && (i % 1000 == 0)){
+      //std::cout << "torque: " << torque << '\n';
+      //std::cout << "euler: " << QuaternionToZYXEuler(prev_quat) << '\n';
+      //std::cout << "prop speeds: " << prop_speeds << '\n';    
      // std::cout << "avg time: " << avg << '\n';
      //   std::cout << "time: " << ms.count() << " " << read_length << '\n';
         //std::cout << "read time: " << (read_length > 0) << '\n';
 //      std::cout << "torque: " << torque << '\n';
 //      std::cout << "prop speeds: " << prop_speeds << '\n';
-    }
+   // }
   }
   close(dev_fd);
   close(fd);

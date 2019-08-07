@@ -264,7 +264,7 @@ int main(){
     //prop_controller.applyControlTargets(9.81, torque);
     prop_controller.applyControlTargets(0.0, torque);
     auto prop_speeds = prop_controller.getCurrentPropSpeed();
-    std::cout << "prop speeds: " << prop_speeds << '\n';    
+    //std::cout << "prop speeds: " << prop_speeds << '\n';    
     for(int i = 0; i < 4; i++)
     {
       prop_speeds[i] = std::max(0.0f, std::min(prop_speeds[i], 1.0f));
@@ -277,11 +277,11 @@ int main(){
       (int)(200000/0.5*prop_speeds[3] + 200000),
       4000000
     };
-    std::cout << "duty cycles: " << '\n';
-    std::cout << duty_cycles.A << '\n';
-    std::cout << duty_cycles.B << '\n';
-    std::cout << duty_cycles.C << '\n';
-    std::cout << duty_cycles.D << '\n';
+    //std::cout << "duty cycles: " << '\n';
+    //std::cout << duty_cycles.A << '\n';
+    //std::cout << duty_cycles.B << '\n';
+    //std::cout << duty_cycles.C << '\n';
+    //std::cout << duty_cycles.D << '\n';
     *(DutyCycles*)pru = duty_cycles;
 
     auto now2 = std::chrono::high_resolution_clock::now();
@@ -296,9 +296,10 @@ int main(){
     start = finish;
     prev_euler = euler;
     i++;
-     std::cout << "euler angles: " << euler << '\n';
     if(debug && (i % 1000 == 0)){
      // std::cout << "avg time: " << avg << '\n';
+      std::cout << "prop speeds: " << prop_speeds << '\n';    
+      std::cout << "euler angles: " << euler << '\n';
      //   std::cout << "time: " << ms.count() << " " << read_length << '\n';
         //std::cout << "read time: " << (read_length > 0) << '\n';
 //      std::cout << "torque: " << torque << '\n';

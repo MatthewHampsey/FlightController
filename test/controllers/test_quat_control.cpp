@@ -3,7 +3,7 @@
 #define BOOST_TEST_MAIN
 #include "quat_control.h"
 #include "test_util.h"
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <cmath>
 
 FrameDrag::Quaternion ZYXEulerToQuaternion(const FrameDrag::Vector3f& v) {

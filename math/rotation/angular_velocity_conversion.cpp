@@ -9,6 +9,11 @@ Vector3f QuaternionToBodyFrameAngularVelocity(const Quaternion& q,
     return 2.0f * (q.conjugate() * q_derivative).im();
 }
 
+Vector3f QuaternionAndTimeToBodyFrameAngularVelocity(const Quaternion& q1, const Quaternion& q2, float time_diff)
+{
+    return 2.0f*(q1.conjugate()*q2/time_diff).im();
+}	
+
 Quaternion
 BodyFrameAngularVelocityToQuaternionDerivative(const Quaternion& q,
     const Vector3f& angular_velocity)
