@@ -1,5 +1,5 @@
 project('FrameDrag', 'cpp',
-        default_options : ['cpp_std=c++14'])
+        default_options : ['cpp_std=c++17'])
 subdir('thirdparty')
 subdir('math')
 subdir('models')

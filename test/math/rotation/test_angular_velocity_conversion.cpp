@@ -44,3 +44,19 @@ BOOST_AUTO_TEST_CASE(test_quaternion_derivative_from_velocity)
     TEST_CHECK_FLOAT_VALUE(est_deriv.im()[1], q_derivative.im()[1], 0.01f);
     TEST_CHECK_FLOAT_VALUE(est_deriv.im()[2], q_derivative.im()[2], 0.01f);
 }
+
+BOOST_AUTO_TEST_CASE(test_velocity_from_quaternions_and_time_delta)
+{
+    FrameDrag::Vector3f axis{ 0.0f, 1 / std::sqrt(2.0f), 1 / std::sqrt(2.0f) };
+    float angle = 1.2f;
+    float angle2 = 1.4f;
+    FrameDrag::Quaternion q(cos(angle / 2.0f), sin(angle / 2.0f) * axis);
+    FrameDrag::Quaternion q2(cos(angle2 / 2.0f), sin(angle2 / 2.0f) * axis);
+
+    auto angular_velocity = QuaternionAndTimeToBodyFrameAngularVelocity(q, q2, 1.0f); 
+
+    auto est_derivative = FrameDrag::numerical_derivative(angle, angle2, 1.0f) * axis;
+    TEST_CHECK_FLOAT_VALUE(angular_velocity[0], est_derivative[0], 0.01f);
+    TEST_CHECK_FLOAT_VALUE(angular_velocity[1], est_derivative[1], 0.01f);
+    TEST_CHECK_FLOAT_VALUE(angular_velocity[2], est_derivative[2], 0.01f);
+}

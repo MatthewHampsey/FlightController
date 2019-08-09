@@ -34,9 +34,10 @@ int main()
         auto current_quat = ZYXEulerToQuaternion(q.eulerAngles());
         auto quat_deriv = numerical_derivative(prev_quat, current_quat, time_delta);
         auto current_target_quat = ZYXEulerToQuaternion(target_euler);
-        auto target_quat_deriv = numerical_derivative(prev_target_quat, current_target_quat, time_delta);
-        Vector3f torque = controller.getControlVector(
-            current_quat, quat_deriv, current_target_quat, target_quat_deriv);
+        //auto target_quat_deriv = numerical_derivative(prev_target_quat, current_target_quat, time_delta);
+        auto angular_velocity = 2.0f*(current_quat.conjugate()*quat_deriv).im(); 
+	Vector3f torque = controller.getControlVector(
+            current_quat, angular_velocity, current_target_quat, Vector3f{0.0f, 0.0f, 0.0f});
         std::cout << "target angles: " << target_euler << '\n';
         std::cout << "current angles: " << q.eulerAngles() << '\n';
         q.step(time_delta, thrust, drag, torque);
